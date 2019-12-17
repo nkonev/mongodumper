@@ -79,31 +79,51 @@ function App() {
         (c.id ? axios.put(`${SERVER_URL}/db`, c) : axios.post(`${SERVER_URL}/db`, c))
             .then(() => {
                 fetchData();
-                setOpen(false);
+                handleCloseEditModal();
             });
     };
 
     // getModalStyle is not a pure function, we roll the style only on the first render
     const [modalStyle] = React.useState(getModalStyle);
-    const [open, setOpen] = React.useState(false);
+    const [openEditModal, setOpenEditModal] = React.useState(false);
     const [editDto, setEditDto] = React.useState({});
+    const [valid, setValid] = React.useState(true);
 
     const handleOpen = (c) => {
         console.log("Editing modal", c.id);
         setEditDto(c);
-        setOpen(true);
+        validate(c);
+        setOpenEditModal(true);
     };
 
-    const handleClose = () => {
-        setOpen(false);
+    const handleCloseEditModal = () => {
+        setOpenEditModal(false);
+    };
+
+    const validString = s => {
+        if (s) {
+            return true
+        } else {
+            return false
+        }
+    };
+
+    const validate = (dto) => {
+        let v = validString(dto.name) && validString(dto.connectionUrl);
+        console.log("Valid? " + JSON.stringify(dto) + " : " + v);
+        setValid(v)
     };
 
     const handleChangeName = event => {
-        setEditDto({...editDto, name: event.target.value});
+        const dto = {...editDto, name: event.target.value};
+        setEditDto(dto);
+        validate(dto);
     };
 
     const handleChangeConnectionUrl = event => {
-        setEditDto({...editDto, connectionUrl: event.target.value});
+        const dto = {...editDto, connectionUrl: event.target.value}
+        setEditDto(dto);
+        validate(dto);
     };
 
     const handleDump = id => {
@@ -160,10 +180,10 @@ function App() {
             <Modal
                 aria-labelledby="simple-modal-title"
                 aria-describedby="simple-modal-description"
-                open={open}
-                onClose={handleClose}
+                open={openEditModal}
+                onClose={handleCloseEditModal}
             >
-                <Fade in={open}>
+                <Fade in={openEditModal}>
                 <div style={modalStyle} className={classes.paper}>
 
                     <Grid container
@@ -177,21 +197,21 @@ function App() {
                         <Grid item container spacing={1} direction="column" justify="center"
                               alignItems="stretch">
                             <Grid item>
-                                <TextField id="outlined-basic" label="Name" variant="outlined" fullWidth value={editDto.name} onChange={handleChangeName}/>
+                                <TextField id="outlined-basic" label="Name" variant="outlined" fullWidth error={!valid} value={editDto.name} onChange={handleChangeName}/>
                             </Grid>
                             <Grid item>
-                                <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth value={editDto.connectionUrl} onChange={handleChangeConnectionUrl}/>
+                                <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth error={!valid} value={editDto.connectionUrl} onChange={handleChangeConnectionUrl}/>
                             </Grid>
 
                         </Grid>
                         <Grid item container spacing={1}>
                             <Grid item>
-                            <Button variant="contained" color="primary" onClick={() => onSave(editDto)}>
+                            <Button variant="contained" color="primary" disabled={!valid} onClick={() => onSave(editDto)}>
                                 Save
                             </Button>
                             </Grid>
                             <Grid item>
-                            <Button variant="contained" color="secondary" onClick={handleClose}>
+                            <Button variant="contained" color="secondary" onClick={handleCloseEditModal}>
                                 Cancel
                             </Button>
                             </Grid>
