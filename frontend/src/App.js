@@ -88,6 +88,8 @@ function App() {
     const [openEditModal, setOpenEditModal] = React.useState(false);
     const [editDto, setEditDto] = React.useState({});
     const [valid, setValid] = React.useState(true);
+    const [openConfirmModal, setOpenConfirmModal] = React.useState(false);
+    const [dbToDelete, setDbToDelete] = React.useState({});
 
     const handleOpen = (c) => {
         console.log("Editing modal", c.id);
@@ -98,6 +100,10 @@ function App() {
 
     const handleCloseEditModal = () => {
         setOpenEditModal(false);
+    };
+
+    const handleCloseConfirmModal = () => {
+        setOpenConfirmModal(false);
     };
 
     const validString = s => {
@@ -127,7 +133,17 @@ function App() {
     };
 
     const handleDump = id => {
-        window.open("/dump/"+id, '_blank');
+        window.open("/dump/" + id, '_blank');
+    };
+
+    const openDeleteModal = (dto) => {
+        setDbToDelete(dto);
+        setOpenConfirmModal(true);
+    };
+
+    const handleDelete = (id) => {
+        onDelete(id);
+        handleCloseConfirmModal();
     };
 
     return (
@@ -161,7 +177,7 @@ function App() {
                                         </Grid>
                                         <Grid item>
                                             <Button variant="contained" color="secondary"
-                                                    onClick={() => onDelete(value.id)}>
+                                                    onClick={() => openDeleteModal(value)}>
                                                 Delete
                                             </Button>
                                         </Grid>
@@ -172,8 +188,9 @@ function App() {
                     })}
                 </List>
 
-                <Fab color="primary" aria-label="add" className={classes.fabButton} onClick={() => handleOpen({name: '', connectionUrl: ''})}>
-                    <AddIcon />
+                <Fab color="primary" aria-label="add" className={classes.fabButton}
+                     onClick={() => handleOpen({name: '', connectionUrl: ''})}>
+                    <AddIcon/>
                 </Fab>
             </div>
 
@@ -184,40 +201,81 @@ function App() {
                 onClose={handleCloseEditModal}
             >
                 <Fade in={openEditModal}>
-                <div style={modalStyle} className={classes.paper}>
+                    <div style={modalStyle} className={classes.paper}>
 
-                    <Grid container
-                          direction="column"
-                          justify="center"
-                          alignItems="stretch"
-                          spacing={2}>
-                        <Grid item>
-                            <span>{editDto.id ? 'Update connection' : 'Create connection'}</span>
-                        </Grid>
-                        <Grid item container spacing={1} direction="column" justify="center"
-                              alignItems="stretch">
+                        <Grid container
+                              direction="column"
+                              justify="center"
+                              alignItems="stretch"
+                              spacing={2}>
                             <Grid item>
-                                <TextField id="outlined-basic" label="Name" variant="outlined" fullWidth error={!valid} value={editDto.name} onChange={handleChangeName}/>
+                                <span>{editDto.id ? 'Update connection' : 'Create connection'}</span>
                             </Grid>
+                            <Grid item container spacing={1} direction="column" justify="center"
+                                  alignItems="stretch">
+                                <Grid item>
+                                    <TextField id="outlined-basic" label="Name" variant="outlined" fullWidth
+                                               error={!valid} value={editDto.name} onChange={handleChangeName}/>
+                                </Grid>
+                                <Grid item>
+                                    <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth
+                                               error={!valid} value={editDto.connectionUrl}
+                                               onChange={handleChangeConnectionUrl}/>
+                                </Grid>
+
+                            </Grid>
+                            <Grid item container spacing={1}>
+                                <Grid item>
+                                    <Button variant="contained" color="primary" disabled={!valid}
+                                            onClick={() => onSave(editDto)}>
+                                        Save
+                                    </Button>
+                                </Grid>
+                                <Grid item>
+                                    <Button variant="contained" color="secondary" onClick={handleCloseEditModal}>
+                                        Cancel
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </div>
+                </Fade>
+            </Modal>
+
+            <Modal
+                aria-labelledby="simple-modal-title"
+                aria-describedby="simple-modal-description"
+                open={openConfirmModal}
+                onClose={handleCloseConfirmModal}
+            >
+                <Fade in={openConfirmModal}>
+                    <div style={modalStyle} className={classes.paper}>
+
+                        <Grid container
+                              direction="column"
+                              justify="center"
+                              alignItems="stretch"
+                              spacing={2}>
                             <Grid item>
-                                <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth error={!valid} value={editDto.connectionUrl} onChange={handleChangeConnectionUrl}/>
+                                Confirm delete {dbToDelete.name}?
                             </Grid>
 
-                        </Grid>
-                        <Grid item container spacing={1}>
-                            <Grid item>
-                            <Button variant="contained" color="primary" disabled={!valid} onClick={() => onSave(editDto)}>
-                                Save
-                            </Button>
+                            <Grid item container spacing={1}>
+                                <Grid item>
+                                    <Button variant="contained" color="primary"
+                                            onClick={() => handleDelete(dbToDelete.id)}>
+                                        Yes
+                                    </Button>
+                                </Grid>
+                                <Grid item>
+
+                                    <Button variant="contained" color="secondary" onClick={handleCloseConfirmModal}>
+                                        Cancel
+                                    </Button>
+                                </Grid>
                             </Grid>
-                            <Grid item>
-                            <Button variant="contained" color="secondary" onClick={handleCloseEditModal}>
-                                Cancel
-                            </Button>
-                            </Grid>
                         </Grid>
-                    </Grid>
-                </div>
+                    </div>
                 </Fade>
             </Modal>
         </div>
