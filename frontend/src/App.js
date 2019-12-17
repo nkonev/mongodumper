@@ -13,6 +13,7 @@ import TextField from '@material-ui/core/TextField';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import Fade from '@material-ui/core/Fade';
+import Box from '@material-ui/core/Box';
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -121,8 +122,12 @@ function App() {
                             <ListItem key={value.id} button>
 
                                 <Grid container spacing={1} direction="row">
-                                    <Grid item xs>
-                                        <ListItemText primary={value.name + ' ' + value.connectionUrl} onClick={() => handleDump(value.id)}/>
+                                    <Grid item xs onClick={() => handleDump(value.id)}>
+                                        <ListItemText>
+                                            <Box fontFamily="Monospace">
+                                                {value.name}
+                                            </Box>
+                                        </ListItemText>
                                     </Grid>
 
                                     <Grid container item xs={2} direction="row"
