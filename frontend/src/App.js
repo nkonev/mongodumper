@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import logo from './logo.svg';
 import './App.css';
 import {SERVER_URL} from "./config";
 import axios from 'axios'
@@ -106,12 +105,15 @@ function App() {
         setEditDto({...editDto, connectionUrl: event.target.value});
     };
 
+    const handleDump = id => {
+        window.open("/dump/"+id, '_blank');
+    };
 
     return (
         <div className="App">
             <div className={classes.root}>
                 <header className="App-header">
-                    <img src={logo} className="App-logo" alt="logo"/>
+                    <pre>mongorestore --drop --archive=/tmp/yourdump</pre>
                 </header>
                 <List component="nav" aria-label="secondary mailbox folders">
                     {connections.map((value, index) => {
@@ -120,7 +122,7 @@ function App() {
 
                                 <Grid container spacing={1} direction="row">
                                     <Grid item xs>
-                                        <ListItemText primary={value.name + ' ' + value.connectionUrl}/>
+                                        <ListItemText primary={value.name + ' ' + value.connectionUrl} onClick={() => handleDump(value.id)}/>
                                     </Grid>
 
                                     <Grid container item xs={2} direction="row"
