@@ -121,7 +121,7 @@ function App() {
     };
 
     const handleChangeConnectionUrl = event => {
-        const dto = {...editDto, connectionUrl: event.target.value}
+        const dto = {...editDto, connectionUrl: event.target.value};
         setEditDto(dto);
         validate(dto);
     };
