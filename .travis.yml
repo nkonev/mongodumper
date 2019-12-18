@@ -1,0 +1,33 @@
+language: java
+java:
+  - "openjdk11"
+node_js:
+  - "12.13.0"
+cache:
+  directories:
+    - "/home/travis/build/nkonev/mongodumper/frontend/node_modules"
+    - "/home/travis/build/nkonev/mongodumper/.gradle"
+    - "/home/travis/.gradle"
+before_install:
+  - "nvm install 12.13.0"
+  - "nvm use 12.13.0"
+install:
+  - "node --version"
+  - (cd frontend; npm install;)
+script:
+  - "pwd"
+  - (cd frontend; npm run build;)
+  - ./gradlew clean build
+  - ls -lah
+  - BUILDDIR=./build;
+    DATE_VERSION=`date +%Y%m%d.%H.%M`
+    JAR=./build/libs/mongodumper-0.0.1-SNAPSHOT.jar;
+    JAR_FINAL=mongodumper.jar;
+    IMAGE_LATEST=nkonev/mongodumper:latest;
+    IMAGE_VERSIONED=nkonev/mongodumper:latest;
+    if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TEST_RESULT" == "0" && "$TRAVIS_EVENT_TYPE" != "cron" ]]; then (
+      mkdir $BUILDDIR && cp $JAR $BUILDDIR/$JAR_FINAL && cp ./Dockerfile $BUILDDIR &&
+      docker build -t $IMAGE_LATEST -t $IMAGE_VERSIONED $BUILDDIR &&
+      docker login -u="$DOCKER_LOGIN" -p="$DOCKER_PASSWORD" &&
+      docker push $IMAGE_LATEST $IMAGE_VERSIONED
+    ) fi
