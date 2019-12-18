@@ -14,6 +14,7 @@ before_install:
 install:
   - "node --version"
   - (cd frontend; npm install;)
+  - echo 'org.gradle.daemon=false' > ~/.gradle/gradle.properties
 script:
   - "pwd"
   - (cd frontend; npm run build;)
