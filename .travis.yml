@@ -25,7 +25,7 @@ script:
     JAR=./build/libs/mongodumper-0.0.1-SNAPSHOT.jar;
     JAR_FINAL=mongodumper.jar;
     IMAGE_LATEST=nkonev/mongodumper:latest;
-    IMAGE_VERSIONED=nkonev/mongodumper:latest;
+    IMAGE_VERSIONED=nkonev/mongodumper:$DATE_VERSION;
     if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TEST_RESULT" == "0" && "$TRAVIS_EVENT_TYPE" != "cron" ]]; then (
       mkdir $BUILDDIR && cp $JAR $BUILDDIR/$JAR_FINAL && cp ./Dockerfile $BUILDDIR &&
       docker build -t $IMAGE_LATEST -t $IMAGE_VERSIONED $BUILDDIR &&
