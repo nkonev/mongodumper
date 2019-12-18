@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.*
+import java.net.URLEncoder
 import java.util.*
 import javax.servlet.http.HttpServletResponse
 import kotlin.collections.ArrayList
@@ -69,10 +70,10 @@ class DatabasesController {
 		}
 		val dbDto :DbConnectionDto = findById.get()
 
-		val filename = dbDto.name
+		val filename = URLEncoder.encode(dbDto.name, "UTF-8")
 		resp.status = 200
 		resp.setHeader("Content-Type", "application/octet-stream")
-		resp.setHeader("Content-Disposition", """attachment; filename="${filename}.gz"""")
+		resp.setHeader("Content-Disposition", """attachment; filename*=utf-8''${filename}.gz""")
 		val pb :ProcessBuilder = ProcessBuilder(properties.mongodump, """--uri=${dbDto.connectionUrl}""", "--gzip", "--archive")
 		val process :Process = pb.start()
 		val inputStream = process.inputStream
