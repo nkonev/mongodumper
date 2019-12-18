@@ -10,11 +10,8 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
-}
-
-.App-header pre {
-  margin-top: 0;
-  margin-bottom: 0;
+  word-wrap: break-word;
+  font-family: monospace;
 }
 
 .App-link {

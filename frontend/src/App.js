@@ -157,8 +157,8 @@ function App() {
         <div className="App">
             <div className={classes.root}>
                 <header className="App-header">
-                    <pre>mongorestore --drop --gzip --archive=/tmp/yourdump</pre>
-                    <pre>docker exec -i e7825dd4664b mongorestore --drop --gzip --archive &lt; /tmp/yourdump</pre>
+                    <div>mongorestore --drop --gzip --archive=/tmp/yourdump</div>
+                    <div>docker exec -i e7825dd4664b mongorestore --drop --gzip --archive &lt; /tmp/yourdump</div>
                 </header>
                 <List component="nav" aria-label="secondary mailbox folders">
                     {connections.map((value, index) => {
