@@ -151,6 +151,7 @@ function App() {
             <div className={classes.root}>
                 <header className="App-header">
                     <pre>mongorestore --drop --archive=/tmp/yourdump</pre>
+                    <pre>docker exec -i e7825dd4664b mongorestore --drop --archive &lt; /tmp/yourdump</pre>
                 </header>
                 <List component="nav" aria-label="secondary mailbox folders">
                     {connections.map((value, index) => {
