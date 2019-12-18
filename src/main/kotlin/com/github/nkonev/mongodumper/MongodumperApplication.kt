@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.util.*
 import javax.servlet.http.HttpServletResponse
-import kotlin.collections.ArrayList
 
 @EnableConfigurationProperties(AppProperties::class)
 @SpringBootApplication
@@ -78,7 +77,12 @@ class DatabasesController {
 		val process :Process = pb.start()
 		val inputStream = process.inputStream
 		inputStream.use {
-			inputStream.copyTo(resp.outputStream)
+			try {
+				inputStream.copyTo(resp.outputStream)
+			} catch (e: RuntimeException){
+				process.destroyForcibly()
+				throw e;
+			}
 		}
 	}
 
