@@ -1,5 +1,5 @@
 language: java
-java:
+jdk:
   - "openjdk11"
 node_js:
   - "12.13.0"
