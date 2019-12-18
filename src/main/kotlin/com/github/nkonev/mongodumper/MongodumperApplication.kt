@@ -72,8 +72,8 @@ class DatabasesController {
 		val filename = dbDto.name
 		resp.status = 200
 		resp.setHeader("Content-Type", "application/octet-stream")
-		resp.setHeader("Content-Disposition", """attachment; filename="${filename}"""")
-		val pb :ProcessBuilder = ProcessBuilder(properties.mongodump, """--uri=${dbDto.connectionUrl}""", "--archive")
+		resp.setHeader("Content-Disposition", """attachment; filename="${filename}.gz"""")
+		val pb :ProcessBuilder = ProcessBuilder(properties.mongodump, """--uri=${dbDto.connectionUrl}""", "--gzip", "--archive")
 		val process :Process = pb.start()
 		val inputStream = process.inputStream
 		inputStream.use {
