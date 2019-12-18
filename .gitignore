@@ -4,3 +4,4 @@ node_modules
 .gradle
 src/main/resources/static
 .idea
+docker-build

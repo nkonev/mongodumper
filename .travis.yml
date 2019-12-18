@@ -19,7 +19,7 @@ script:
   - (cd frontend; npm run build;)
   - ./gradlew clean build
   - ls -lah
-  - BUILDDIR=./build;
+  - BUILDDIR=./docker-build;
     DATE_VERSION=`date +%Y%m%d.%H.%M`
     JAR=./build/libs/mongodumper-0.0.1-SNAPSHOT.jar;
     JAR_FINAL=mongodumper.jar;
