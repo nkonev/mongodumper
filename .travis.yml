@@ -30,5 +30,5 @@ script:
       mkdir $BUILDDIR && cp $JAR $BUILDDIR/$JAR_FINAL && cp ./Dockerfile $BUILDDIR &&
       docker build -t $IMAGE_LATEST -t $IMAGE_VERSIONED $BUILDDIR &&
       docker login -u="$DOCKER_LOGIN" -p="$DOCKER_PASSWORD" &&
-      docker push $IMAGE_LATEST $IMAGE_VERSIONED
+      docker push $IMAGE_LATEST && docker push $IMAGE_VERSIONED
     ) fi
