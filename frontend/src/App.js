@@ -35,6 +35,13 @@ const useStyles = makeStyles(theme => ({
         boxShadow: theme.shadows[5],
         padding: theme.spacing(2),
     },
+    confirm: {
+        position: 'absolute',
+        backgroundColor: theme.palette.background.paper,
+        border: '2px solid #000',
+        boxShadow: theme.shadows[5],
+        padding: theme.spacing(2),
+    },
 }));
 
 function getModalStyle() {
@@ -250,7 +257,7 @@ function App() {
                 onClose={handleCloseConfirmModal}
             >
                 <Fade in={openConfirmModal}>
-                    <div style={modalStyle} className={classes.paper}>
+                    <div style={modalStyle} className={classes.confirm}>
 
                         <Grid container
                               direction="column"
