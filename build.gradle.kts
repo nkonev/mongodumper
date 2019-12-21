@@ -26,6 +26,11 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 	}
+
+	testImplementation("org.seleniumhq.selenium:selenium-java:3.141.59")
+	testImplementation("io.github.bonigarcia:webdrivermanager:3.6.1")
+	testImplementation("org.testcontainers:testcontainers:1.12.4")
+	testImplementation ("org.testcontainers:junit-jupiter:1.12.4")
 }
 
 tasks.withType<Test> {
