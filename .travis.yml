@@ -16,6 +16,8 @@ install:
   - "node --version"
   - (cd frontend; npm install;)
   - echo 'org.gradle.daemon=false' > ~/.gradle/gradle.properties
+addons:
+  chrome: stable
 script:
   - "pwd"
   - (cd frontend; npm run build;)
