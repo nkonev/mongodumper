@@ -50,7 +50,6 @@ fun getGitHash(): String {
 
 tasks {
 	"processResources"(ProcessResources::class) {
-		System.out.println("Invoked")
 		filesMatching("**/git.properties") {
 			// https://docs.gradle.org/6.0.1/userguide/working_with_files.html#sec:filtering_files
 			filter(org.apache.tools.ant.filters.ReplaceTokens::class, "tokens" to mapOf("hash" to getGitHash()))
