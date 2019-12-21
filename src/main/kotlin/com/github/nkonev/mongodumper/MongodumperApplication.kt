@@ -2,6 +2,7 @@ package com.github.nkonev.mongodumper
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -10,6 +11,7 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.PropertySource
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
@@ -33,7 +35,7 @@ data class AppProperties(val mongodump: String)
 
 @ConstructorBinding
 @ConfigurationProperties("build")
-data class BuildProperties(val hash: String)
+data class BuildProperties(val commitHash: String)
 
 @RestController
 class DatabasesController {
@@ -43,16 +45,6 @@ class DatabasesController {
 
 	@Autowired
 	private lateinit var appProperties: AppProperties
-
-	@Autowired
-	private lateinit var buildProperties: BuildProperties
-
-	private val logger = LoggerFactory.getLogger(javaClass)
-
-	@PostConstruct
-	fun postConstruct(){
-		logger.info("Git commit hash: {}", buildProperties.hash)
-	}
 
 	@PostMapping("/db")
 	fun create(@RequestBody userDto: DbConnectionDto): DbConnectionDto {
@@ -104,6 +96,30 @@ class DatabasesController {
 		}
 	}
 
+}
+
+@RestController
+class BuildController {
+
+	@Autowired
+	private lateinit var buildProperties: BuildProperties
+
+	@GetMapping("/version")
+	fun version(): BuildProperties {
+		return buildProperties;
+	}
+}
+
+@Component
+class Commandline : CommandLineRunner {
+	private val logger = LoggerFactory.getLogger(javaClass)
+
+	@Autowired
+	private lateinit var buildProperties: BuildProperties
+
+	override fun run(vararg args: String?) {
+		logger.info("Git commit hash: {}", buildProperties.commitHash)
+	}
 }
 
 fun main(args: Array<String>) {
