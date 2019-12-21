@@ -28,14 +28,13 @@ dependencies {
 	}
 
 	testImplementation("org.seleniumhq.selenium:selenium-java:3.141.59")
-	testImplementation("io.github.bonigarcia:webdrivermanager:3.6.1")
 	testImplementation("org.testcontainers:testcontainers:1.12.4")
 	testImplementation ("org.testcontainers:junit-jupiter:1.12.4")
+	testImplementation ("org.testcontainers:selenium:1.12.4")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-	systemProperties(System.getProperties() as Map<String, Any>)
 }
 
 tasks.withType<KotlinCompile> {

@@ -18,7 +18,7 @@ install:
 script:
   - "pwd"
   - (cd frontend; npm run build;)
-  - ./gradlew clean build -Dheadless --info --stacktrace
+  - ./gradlew clean build --info --stacktrace
   - ls -lah
   - rm -rf /home/travis/build/nkonev/mongodumper/frontend/node_modules/.cache
   - BUILDDIR=./docker-build;

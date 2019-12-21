@@ -1,11 +1,13 @@
 package com.github.nkonev.mongodumper
 
-import io.github.bonigarcia.wdm.WebDriverManager
+import com.github.nkonev.mongodumper.MongodumperApplicationTests.Companion.appPort
+import com.github.nkonev.mongodumper.MongodumperApplicationTests.Companion.webdriverContainer
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.TestWatcher
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
@@ -24,19 +26,24 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.testcontainers.containers.BrowserWebDriverContainer
+import org.testcontainers.containers.BrowserWebDriverContainer.VncRecordingMode.RECORD_ALL
+import org.testcontainers.containers.DefaultRecordingFileFactory
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.lifecycle.TestDescription
+import java.io.File
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-class DatabasesPage(private val driver: WebDriver, private val port :Integer) {
+class DatabasesPage(private val driver: WebDriver, private val host: String, private val port :Integer) {
 
 	init {
 		PageFactory.initElements(driver, this)
 	}
 
-	private val pageUrl = "http://localhost:${port}"
+	private val pageUrl = "http://${host}:${port}"
 
 	fun open() = driver.get(pageUrl)
 
@@ -51,12 +58,37 @@ class DatabasesPage(private val driver: WebDriver, private val port :Integer) {
 
 }
 
+class KotlinWebDriverContainer : BrowserWebDriverContainer<KotlinWebDriverContainer>()
+
+class TestcontainersCallbackPusherExtension : TestWatcher {
+	fun getDescription(context: ExtensionContext?) : TestDescription {
+		return object: TestDescription {
+			override fun getTestId(): String {
+				return ""
+			}
+
+			override fun getFilesystemFriendlyName(): String? {
+				return ""+ context?.testClass?.get()?.name + "_" + context?.testMethod?.get()?.name
+			}
+		}
+	}
+
+    override fun testFailed(context: ExtensionContext?, cause: Throwable?) {
+		webdriverContainer.afterTest(getDescription(context), Optional.ofNullable(cause))
+    }
+
+    override fun testSuccessful(context: ExtensionContext?) {
+		webdriverContainer.afterTest(getDescription(context), Optional.empty())
+    }
+}
+
 @TestPropertySource(properties = [
-	"server.port=7077"
+	"server.port=$appPort"
 ])
 @SpringBootTest(classes=[MongodumperApplication::class], webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Testcontainers
 @AutoConfigureMockMvc
+@ExtendWith(TestcontainersCallbackPusherExtension::class)
 class MongodumperApplicationTests {
 
 	@LocalServerPort
@@ -69,37 +101,50 @@ class MongodumperApplicationTests {
 	lateinit var mockMvc: MockMvc
 
 	companion object {
+		const val appPort = 7077
+
 		val mongoPort = 27017
-		// https://sites.google.com/a/chromium.org/chromedriver/
-		val chromedriverVersion = "79.0.3945.36"
+
 		val mongoProperty = "spring.data.mongodb.uri"
 		val mongoContainerVersion = "mongo:4.2.2-bionic"
 
-		@Container
-		var mongoContainer : GenericContainer<*> = GenericContainer<Nothing>(mongoContainerVersion).withExposedPorts(mongoPort);
+		val host = "host.testcontainers.internal"
+
+		lateinit var webdriverContainer : KotlinWebDriverContainer
+
+		lateinit var mongoContainer : GenericContainer<*>
 
 		lateinit var driver: WebDriver
+
+		fun getHostForBrowser() : String{
+			return host
+		}
 
 		@JvmStatic
 		@BeforeAll
 		fun beforeAll() {
+			org.testcontainers.Testcontainers.exposeHostPorts(appPort);
+
+			val vidDir = File("./build/video")
+			vidDir.deleteRecursively()
+			vidDir.mkdirs()
+			webdriverContainer = KotlinWebDriverContainer()
+					.withCapabilities(ChromeOptions())
+					.withRecordingMode(RECORD_ALL, vidDir)
+					.withRecordingFileFactory(DefaultRecordingFileFactory());
+			webdriverContainer.start()
+
+			println("Use this VNC address for connect into container with remmina. Select max color depth and quality. If any errors, check remmina's console window.")
+			println("VNC address " + webdriverContainer.vncAddress)
+
+			mongoContainer = GenericContainer<Nothing>(mongoContainerVersion).withExposedPorts(mongoPort)
+			mongoContainer.start()
+
+
 			val mappedPort = mongoContainer.getMappedPort(mongoPort)
 			System.setProperty(mongoProperty, "mongodb://localhost:${mappedPort}/mongodumper")
 
-			// https://developers.google.com/web/updates/2017/04/headless-chrome
-			WebDriverManager.chromedriver().version(chromedriverVersion).setup();
-
-			val chromeOptions = ChromeOptions()
-			val list = ArrayList<String>()
-			list.add("--verbose")
-			list.add("--no-sandbox")
-			list.add("--disable-dev-shm-usage")
-			if (System.getProperty("headless")!=null ) {
-				list.add("--headless")
-			}
-			chromeOptions.addArguments(list)
-
-            driver = ChromeDriver(chromeOptions)
+			driver = webdriverContainer.getWebDriver();
 
 			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.SECONDS)
 			driver.manage()?.window()?.maximize()
@@ -109,6 +154,8 @@ class MongodumperApplicationTests {
 		@AfterAll
 		fun afterMethod() {
 			driver.close()
+
+			webdriverContainer.close()
 		}
 
 	}
@@ -116,13 +163,13 @@ class MongodumperApplicationTests {
 	@Test
 	fun `Should display header`() {
 
-		val profilePage = DatabasesPage(driver, port)
+		val databasesPage = DatabasesPage(driver, getHostForBrowser(), port)
 
-		profilePage.run {
+		databasesPage.run {
 			open()
 		}
 
-		profilePage.verifyContent()
+		databasesPage.verifyContent()
 	}
 
 	@Test
