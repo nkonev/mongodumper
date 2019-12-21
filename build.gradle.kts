@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.language.jvm.tasks.ProcessResources
+import java.io.ByteArrayOutputStream
 
 plugins {
 	id("org.springframework.boot") version "2.2.2.RELEASE"
@@ -34,5 +36,24 @@ tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "11"
+	}
+}
+
+fun getGitHash(): String {
+	val stdout = ByteArrayOutputStream()
+	exec {
+		commandLine ("git", "rev-parse", "--short", "HEAD")
+		standardOutput = stdout
+	}
+	return stdout.toString().trim()
+}
+
+tasks {
+	"processResources"(ProcessResources::class) {
+		System.out.println("Invoked")
+		filesMatching("**/git.properties") {
+			// https://docs.gradle.org/6.0.1/userguide/working_with_files.html#sec:filtering_files
+			filter(org.apache.tools.ant.filters.ReplaceTokens::class, "tokens" to mapOf("hash" to getGitHash()))
+		}
 	}
 }
