@@ -19,7 +19,7 @@ install:
 script:
   - "pwd"
   - (cd frontend; npm run build;)
-  - ./gradlew clean build
+  - ./gradlew clean build --info --stacktrace
   - ls -lah
   - BUILDDIR=./docker-build;
     DATE_VERSION=`date +%Y%m%d.%H.%M`;
