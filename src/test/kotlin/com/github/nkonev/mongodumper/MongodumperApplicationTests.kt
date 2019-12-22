@@ -73,9 +73,10 @@ class MongodumperApplicationTests {
 		// https://sites.google.com/a/chromium.org/chromedriver/
 		val chromedriverVersion = "79.0.3945.36"
 		val mongoProperty = "spring.data.mongodb.uri"
+		val mongoContainerVersion = "mongo:4.2.0-bionic"
 
 		@Container
-		var mongoContainer : GenericContainer<*> = GenericContainer<Nothing>("mongo:4.2.0-bionic").withExposedPorts(mongoPort);
+		var mongoContainer : GenericContainer<*> = GenericContainer<Nothing>(mongoContainerVersion).withExposedPorts(mongoPort);
 
 		lateinit var driver: WebDriver
 
