@@ -21,6 +21,7 @@ addons:
 script:
   - "pwd"
   - (cd frontend; npm run build;)
+  - ss -lnptr
   - ./gradlew clean build --info --stacktrace
   - ls -lah
   - BUILDDIR=./docker-build;
