@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
+import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.support.FindBy
 import org.openqa.selenium.support.PageFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -82,6 +83,9 @@ class MongodumperApplicationTests {
 
 			WebDriverManager.chromedriver().version(chromedriverVersion).setup();
 
+			// https://developers.google.com/web/updates/2017/04/headless-chrome
+			val chromeOptions = ChromeOptions()
+			chromeOptions.addArguments("--headless")
 			driver = ChromeDriver()
 
 			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.SECONDS)
