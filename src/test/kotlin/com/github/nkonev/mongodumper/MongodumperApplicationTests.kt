@@ -85,7 +85,7 @@ class MongodumperApplicationTests {
 
 			// https://developers.google.com/web/updates/2017/04/headless-chrome
 			val chromeOptions = ChromeOptions()
-			chromeOptions.addArguments("--headless")
+			chromeOptions.addArguments("--headless", "--verbose")
             println("Starting chrome driver from java")
             driver = ChromeDriver()
 
