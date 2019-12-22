@@ -67,7 +67,7 @@ class MongodumperApplicationTests {
 	companion object {
 		val mongoPort = 27017
 		// https://sites.google.com/a/chromium.org/chromedriver/
-		val chromedriverVersion = "2.40"
+		val chromedriverVersion = "2.46"
 		val mongoProperty = "spring.data.mongodb.uri"
 
 		@Container
