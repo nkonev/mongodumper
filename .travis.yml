@@ -16,7 +16,6 @@ install:
   - (cd frontend; npm install;)
   - echo 'org.gradle.daemon=false' > ~/.gradle/gradle.properties
 script:
-  - rm -rf /home/travis/build/nkonev/mongodumper/.gradle
   - "pwd"
   - (cd frontend; npm run build;)
   - ./gradlew clean build -Dheadless --info --stacktrace
