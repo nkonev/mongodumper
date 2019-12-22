@@ -1,7 +1,14 @@
 [![Build Status](https://travis-ci.com/nkonev/mongodumper.svg?branch=master)](https://travis-ci.com/nkonev/mongodumper)
 
+# Screenshots
+![](./.markdown/1.png)
+![](./.markdown/2.png)
+![](./.markdown/3.png)
+
+# Configuration
 Set environment variable `SPRING_DATA_MONGODB_URI` with url of mongo used for store connections list.
 
+# Download
 [Docker hub](https://hub.docker.com/repository/docker/nkonev/mongodumper)
 ```bash
 docker pull nkonev/mongodumper
