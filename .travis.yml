@@ -23,7 +23,7 @@ script:
   - "pwd"
   - (cd frontend; npm run build;)
   - ss -lnptr
-  - ./gradlew clean build --info --stacktrace
+  - ./gradlew clean build -Dheadless --info --stacktrace
   - ls -lah
   - BUILDDIR=./docker-build;
     DATE_VERSION=`date +%Y%m%d.%H.%M`;

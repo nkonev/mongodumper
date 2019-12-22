@@ -12,6 +12,8 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.support.FindBy
 import org.openqa.selenium.support.PageFactory
+import org.openqa.selenium.support.ui.ExpectedConditions
+import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -19,7 +21,6 @@ import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.ResultHandler
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -39,10 +40,12 @@ class DatabasesPage(private val driver: WebDriver, private val port :Integer) {
 
 	fun open() = driver.get(pageUrl)
 
-	@FindBy(css = ".App pre")
+	@FindBy(css = ".App .header-text")
 	lateinit var headerText: WebElement
 
 	fun verifyContent() {
+		val webDriverWait = WebDriverWait(driver, 1, 500)
+		webDriverWait.until(ExpectedConditions.visibilityOf(headerText))
 		assertThat("Should display header", headerText.text.contains("mongorestore --drop", false));
 	}
 
@@ -82,11 +85,18 @@ class MongodumperApplicationTests {
 			val mappedPort = mongoContainer.getMappedPort(mongoPort)
 			System.setProperty(mongoProperty, "mongodb://localhost:${mappedPort}/mongodumper")
 
+			// https://developers.google.com/web/updates/2017/04/headless-chrome
 			WebDriverManager.chromedriver().version(chromedriverVersion).setup();
 
-			// https://developers.google.com/web/updates/2017/04/headless-chrome
 			val chromeOptions = ChromeOptions()
-			chromeOptions.addArguments("--headless", "--verbose", "--no-sandbox", "--disable-dev-shm-usage")
+			val list = ArrayList<String>()
+			list.add("--verbose")
+			list.add("--no-sandbox")
+			list.add("--disable-dev-shm-usage")
+			if (System.getProperty("headless")!=null ) {
+				list.add("--headless")
+			}
+			chromeOptions.addArguments(list)
 
             driver = ChromeDriver(chromeOptions)
 
@@ -136,13 +146,4 @@ class MongodumperApplicationTests {
 				.andExpect(jsonPath("$[0].name").value("My first connection"))
 	}
 
-	@Test
-	fun `Should serve static`() {
-		println("Static:")
-		mockMvc.perform(MockMvcRequestBuilders.get("/"))
-				.andDo(ResultHandler { result ->
-					println(result.response.contentAsString)
-				})
-				.andExpect(status().isOk())
-	}
 }

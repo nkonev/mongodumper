@@ -35,6 +35,7 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	systemProperties(System.getProperties() as Map<String, Any>)
 }
 
 tasks.withType<KotlinCompile> {
