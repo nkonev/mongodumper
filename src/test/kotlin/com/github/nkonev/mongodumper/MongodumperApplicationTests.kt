@@ -67,7 +67,7 @@ class MongodumperApplicationTests {
 	companion object {
 		val mongoPort = 27017
 		// https://sites.google.com/a/chromium.org/chromedriver/
-		val chromedriverVersion = "2.46"
+		val chromedriverVersion = "79.0.3945.36"
 		val mongoProperty = "spring.data.mongodb.uri"
 
 		@Container
@@ -85,9 +85,9 @@ class MongodumperApplicationTests {
 
 			// https://developers.google.com/web/updates/2017/04/headless-chrome
 			val chromeOptions = ChromeOptions()
-			chromeOptions.addArguments("--headless", "--verbose", "--no-sandbox", "--disable-dev-shm-usage")
+			chromeOptions.addArguments("--headless", "--verbose", "--no-sandbox", "--disable-dev-shm-usage", "--whitelisted-ips=\"\"")
             println("Starting chrome driver from java")
-            driver = ChromeDriver()
+            driver = ChromeDriver(chromeOptions)
 
 			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.SECONDS)
 			driver.manage()?.window()?.maximize()
