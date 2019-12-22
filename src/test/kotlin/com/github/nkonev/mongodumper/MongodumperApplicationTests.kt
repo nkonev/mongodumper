@@ -19,6 +19,7 @@ import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultHandler
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -86,7 +87,7 @@ class MongodumperApplicationTests {
 			// https://developers.google.com/web/updates/2017/04/headless-chrome
 			val chromeOptions = ChromeOptions()
 			chromeOptions.addArguments("--headless", "--verbose", "--no-sandbox", "--disable-dev-shm-usage")
-            println("Starting chrome driver from java")
+
             driver = ChromeDriver(chromeOptions)
 
 			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.SECONDS)
@@ -133,5 +134,15 @@ class MongodumperApplicationTests {
 		mockMvc.perform(MockMvcRequestBuilders.get("/db"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].name").value("My first connection"))
+	}
+
+	@Test
+	fun `Should serve static`() {
+		println("Static:")
+		mockMvc.perform(MockMvcRequestBuilders.get("/"))
+				.andDo(ResultHandler { result ->
+					println(result.response.contentAsString)
+				})
+				.andExpect(status().isOk())
 	}
 }
