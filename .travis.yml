@@ -18,11 +18,11 @@ install:
 script:
   - "pwd"
   - (cd frontend; npm run build;)
-  - ./gradlew clean build --info --stacktrace
+  - DATE_VERSION=`date +%Y%m%d.%H.%M`;
+  - ./gradlew clean build --info --stacktrace -DdatedVersion=$DATE_VERSION
   - ls -lah
   - rm -rf /home/travis/build/nkonev/mongodumper/frontend/node_modules/.cache
   - BUILDDIR=./docker-build;
-    DATE_VERSION=`date +%Y%m%d.%H.%M`;
     JAR=./build/libs/mongodumper-*.jar;
     JAR_FINAL=mongodumper.jar;
     IMAGE_LATEST=nkonev/mongodumper:latest;

@@ -35,7 +35,7 @@ data class AppProperties(val mongodump: String)
 
 @ConstructorBinding
 @ConfigurationProperties("build")
-data class BuildProperties(val commitHash: String)
+data class BuildProperties(val commitHash: String, val version :String)
 
 @RestController
 class DatabasesController {
@@ -118,7 +118,7 @@ class Commandline : CommandLineRunner {
 	private lateinit var buildProperties: BuildProperties
 
 	override fun run(vararg args: String?) {
-		logger.info("Git commit hash: {}", buildProperties.commitHash)
+		logger.info("Git commit hash: {}, version {}", buildProperties.commitHash, buildProperties.version)
 	}
 }
 

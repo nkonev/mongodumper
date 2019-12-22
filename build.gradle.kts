@@ -57,7 +57,7 @@ tasks {
 	"processResources"(ProcessResources::class) {
 		filesMatching("**/git.properties") {
 			// https://docs.gradle.org/6.0.1/userguide/working_with_files.html#sec:filtering_files
-			filter(org.apache.tools.ant.filters.ReplaceTokens::class, "tokens" to mapOf("hash" to getGitHash()))
+			filter(org.apache.tools.ant.filters.ReplaceTokens::class, "tokens" to mapOf("hash" to getGitHash(), "version" to (System.getProperty("datedVersion")?:"nonversioned")))
 		}
 	}
 }
