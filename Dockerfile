@@ -7,6 +7,6 @@ RUN apt-get update
 RUN apt-get install -y mongodb-org-tools=4.2.2
 
 EXPOSE 8080
-COPY ./mongodumper.jar /opt/mongodumper/mongodumper.jar
 WORKDIR /opt/mongodumper
 CMD ["java", "-jar", "mongodumper.jar"]
+COPY ./mongodumper.jar /opt/mongodumper/mongodumper.jar
