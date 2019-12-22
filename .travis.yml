@@ -1,5 +1,4 @@
 language: java
-sudo: required
 dist: xenial
 jdk:
   - "openjdk11"
@@ -8,7 +7,6 @@ node_js:
 cache:
   directories:
     - "/home/travis/build/nkonev/mongodumper/frontend/node_modules"
-    - "/home/travis/build/nkonev/mongodumper/.gradle"
     - "/home/travis/.gradle"
 before_install:
   - "nvm install 12.13.0"
@@ -17,12 +15,10 @@ install:
   - "node --version"
   - (cd frontend; npm install;)
   - echo 'org.gradle.daemon=false' > ~/.gradle/gradle.properties
-#addons:
-#  chrome: stable
 script:
+  - rm -rf /home/travis/build/nkonev/mongodumper/.gradle
   - "pwd"
   - (cd frontend; npm run build;)
-  - ss -lnptr
   - ./gradlew clean build -Dheadless --info --stacktrace
   - ls -lah
   - BUILDDIR=./docker-build;
