@@ -20,6 +20,7 @@ script:
   - (cd frontend; npm run build;)
   - ./gradlew clean build -Dheadless --info --stacktrace
   - ls -lah
+  - rm -rf /home/travis/build/nkonev/mongodumper/frontend/node_modules/.cache
   - BUILDDIR=./docker-build;
     DATE_VERSION=`date +%Y%m%d.%H.%M`;
     JAR=./build/libs/mongodumper-*.jar;
