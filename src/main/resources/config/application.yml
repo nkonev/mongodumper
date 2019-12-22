@@ -1,4 +1,4 @@
 spring.data.mongodb.uri: "mongodb://localhost/mongodumper"
 spring.mvc.static-path-pattern: /**
-spring.resources.static-locations: file:mongodumper/src/main/resources/static/, classpath:/static/
+spring.resources.static-locations: file:src/main/resources/static/, classpath:/static/
 mongodumper.mongodump: "mongodump"
