@@ -16,6 +16,8 @@ import org.openqa.selenium.support.FindBy
 import org.openqa.selenium.support.PageFactory
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -101,8 +103,9 @@ class MongodumperApplicationTests {
 	lateinit var mockMvc: MockMvc
 
 	companion object {
-		const val appPort = 7077
+		val logger :Logger = LoggerFactory.getLogger(MongodumperApplicationTests::class.java)
 
+		const val appPort = 7077
 		val mongoPort = 27017
 
 		val mongoProperty = "spring.data.mongodb.uri"
@@ -134,8 +137,8 @@ class MongodumperApplicationTests {
 					.withRecordingFileFactory(DefaultRecordingFileFactory());
 			webdriverContainer.start()
 
-			println("Use this VNC address for connect into container with remmina. Select max color depth and quality. If any errors, check remmina's console window.")
-			println("VNC address " + webdriverContainer.vncAddress)
+			logger.info("Use this VNC address for connect into container with remmina. Select max color depth and quality. If any errors, check remmina's console window.")
+			logger.debug("VNC address " + webdriverContainer.vncAddress)
 
 			mongoContainer = GenericContainer<Nothing>(mongoContainerVersion).withExposedPorts(mongoPort)
 			mongoContainer.start()

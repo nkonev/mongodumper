@@ -13,7 +13,7 @@
     <logger name="org.testcontainers" level="INFO"/>
     <logger name="com.github.dockerjava" level="INFO"/>
     <logger name="org.openqa.selenium" level="DEBUG"/>
-    <logger name="io.github.bonigarcia" level="DEBUG"/>
+    <logger name="com.github.nkonev.mongodumper.MongodumperApplicationTests" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="stdout"/>
