@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import './App.css';
-import {SERVER_URL} from "./config";
 import axios from 'axios'
 import Modal from '@material-ui/core/Modal';
 import {makeStyles} from '@material-ui/core/styles';
@@ -61,7 +60,7 @@ function App() {
 
     const fetchData = () => {
         console.log("before get");
-        axios.get(`${SERVER_URL}/db`)
+        axios.get(`db`)
             .then(message => {
                 const m = message.data;
                 setConnections(m);
@@ -76,14 +75,14 @@ function App() {
 
     const onDelete = id => {
         console.log("Deleting", id);
-        axios.delete(`${SERVER_URL}/db/${id}`)
+        axios.delete(`db/${id}`)
             .then(() => {
                 fetchData();
             });
     };
 
     const onSave = (c) => {
-        (c.id ? axios.put(`${SERVER_URL}/db`, c) : axios.post(`${SERVER_URL}/db`, c))
+        (c.id ? axios.put(`db`, c) : axios.post(`db`, c))
             .then(() => {
                 fetchData();
                 handleCloseEditModal();
@@ -140,7 +139,9 @@ function App() {
     };
 
     const handleDump = id => {
-        window.open("/dump/" + id, '_blank');
+        const d = "dump/" + id;
+        console.log(`Will open ${window.location.href + d} for download gzipped file`);
+        window.open(d, '_blank');
     };
 
     const openDeleteModal = (dto) => {

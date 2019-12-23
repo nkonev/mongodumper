@@ -26,9 +26,6 @@ module.exports = {
                     {
                         loader: CssExtractPlugin.loader,
                         options: {
-                            // you can specify a publicPath here
-                            // by default it uses publicPath in webpackOptions.output
-                            publicPath: '../',
                             hot: process.env.NODE_ENV === 'development',
                         },
                     },
