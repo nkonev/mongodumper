@@ -8,6 +8,8 @@
 # Configuration
 Set environment variable `SPRING_DATA_MONGODB_URI` with url of mongo used for store connections list.
 
+(Optional) set environment variable `SERVER_SERVLET_CONTEXT-PATH=/mongodumper`.
+
 # Download
 [Docker hub](https://hub.docker.com/repository/docker/nkonev/mongodumper)
 ```bash
