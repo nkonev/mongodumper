@@ -8,9 +8,9 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.TestWatcher
+import org.openqa.selenium.By
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
-import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.openqa.selenium.support.FindBy
 import org.openqa.selenium.support.PageFactory
@@ -35,6 +35,7 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.lifecycle.TestDescription
 import java.io.File
+import java.lang.RuntimeException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -52,10 +53,66 @@ class DatabasesPage(private val driver: WebDriver, private val host: String, pri
 	@FindBy(css = ".App .header-text")
 	lateinit var headerText: WebElement
 
+	@FindBy(css = "button .fab-add")
+	lateinit var addButton: WebElement
+
+	@FindBy(css = ".edit-modal")
+	lateinit var editModal: WebElement
+
+
+
+	class EditModal(private val driver: WebDriver) {
+		init {
+			PageFactory.initElements(driver, this)
+		}
+
+		@FindBy(css = ".edit-modal button.edit-modal-save")
+		lateinit var saveButton: WebElement
+
+		@FindBy(css = ".edit-modal button.edit-modal-cancel")
+		lateinit var cancelButton: WebElement
+
+		@FindBy(css = ".edit-modal .edit-modal-name input")
+		lateinit var name: WebElement
+
+		@FindBy(css = ".edit-modal .edit-modal-connection-url input")
+		lateinit var connectionUrl: WebElement
+
+		fun input(newName: String, newConnectionUrl: String) {
+
+			val webDriverWait0 = WebDriverWait(driver, 10, 500)
+			webDriverWait0.until(ExpectedConditions.visibilityOf(name)).sendKeys(newName)
+
+			val webDriverWait1 = WebDriverWait(driver, 10, 500)
+			webDriverWait1.until(ExpectedConditions.visibilityOf(connectionUrl)).sendKeys(newConnectionUrl)
+		}
+
+		fun save() {
+			val webDriverWait0 = WebDriverWait(driver, 10, 500)
+			webDriverWait0.until(ExpectedConditions.elementToBeClickable(saveButton)).click()
+		}
+	}
+
+
 	fun verifyContent() {
-		val webDriverWait = WebDriverWait(driver, 1, 500)
+		val webDriverWait = WebDriverWait(driver, 10, 500)
 		webDriverWait.until(ExpectedConditions.visibilityOf(headerText))
 		assertThat("Should display header", headerText.text.contains("mongorestore --drop", false));
+	}
+
+	fun openNewModal() : EditModal {
+		addButton.click()
+
+		val webDriverWait = WebDriverWait(driver, 10, 500)
+		webDriverWait.until(ExpectedConditions.visibilityOf(editModal))
+
+		return EditModal(driver)
+	}
+
+	fun getDatabasesList(): List<String> {
+		var list: List<WebElement> = driver.findElements(By.cssSelector(".list .list-element"))
+
+		return list.map { webElement -> webElement.text }
 	}
 
 }
@@ -163,6 +220,11 @@ class MongodumperApplicationTests {
 
 	}
 
+	@BeforeEach
+	fun setup() {
+		databasesRepository.deleteAll()
+	}
+
 	@Test
 	fun `Should display header`() {
 
@@ -176,7 +238,7 @@ class MongodumperApplicationTests {
 	}
 
 	@Test
-	fun `Created db is displayed`() {
+	fun `Created db is displayed REST`() {
 		Assert.assertTrue(databasesRepository.count() == 0L)
 
 		val selfMongoUrl = System.getProperty(mongoProperty)
@@ -195,6 +257,51 @@ class MongodumperApplicationTests {
 		mockMvc.perform(MockMvcRequestBuilders.get("/db"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].name").value("My first connection"))
+
+		val databasesPage = DatabasesPage(driver, getHostForBrowser(), port)
+
+		databasesPage.run {
+			open()
+		}
+
 	}
+
+	@Test
+	fun `Created db is displayed Integration`() {
+		Assert.assertTrue(databasesRepository.count() == 0L)
+
+		val selfMongoUrl = System.getProperty(mongoProperty)
+
+		val databasesPage = DatabasesPage(driver, getHostForBrowser(), port)
+		val newConnectionName = "new connection name"
+
+		databasesPage.run {
+			open()
+			val modal = openNewModal()
+			modal.input(newConnectionName, selfMongoUrl)
+			modal.save()
+
+			var success = false
+			for (i in 1..10 step 1) {
+				try {
+					val databasesList = getDatabasesList()
+					if(databasesList.contains(newConnectionName)) {
+						success = true
+						break
+					} else {
+						throw RuntimeException()
+					}
+				} catch (e: RuntimeException) {
+					println("Retrying...")
+					TimeUnit.SECONDS.sleep(1)
+				}
+			}
+			Assert.assertTrue(success)
+
+		}
+
+	}
+
+
 
 }

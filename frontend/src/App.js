@@ -161,7 +161,7 @@ function App() {
                     <div className="header-text">mongorestore --drop --gzip --archive=/tmp/yourdump.gz</div>
                     <div className="header-text">docker exec -i e7825dd4664b mongorestore --drop --gzip --archive &lt; /tmp/yourdump.gz</div>
                 </header>
-                <List component="nav" aria-label="secondary mailbox folders">
+                <List component="nav" aria-label="secondary mailbox folders" className="list">
                     {connections.map((value, index) => {
                         return (
                             <ListItem key={value.id} button>
@@ -169,7 +169,7 @@ function App() {
                                 <Grid container spacing={1} direction="row">
                                     <Grid item xs onClick={() => handleDump(value.id)}>
                                         <ListItemText>
-                                            <Box fontFamily="Monospace">
+                                            <Box fontFamily="Monospace" className="list-element">
                                                 {value.name}
                                             </Box>
                                         </ListItemText>
@@ -199,7 +199,7 @@ function App() {
 
                 <Fab color="primary" aria-label="add" className={classes.fabButton}
                      onClick={() => handleOpen({name: '', connectionUrl: ''})}>
-                    <AddIcon/>
+                    <AddIcon className="fab-add"/>
                 </Fab>
             </div>
 
@@ -216,18 +216,18 @@ function App() {
                               direction="column"
                               justify="center"
                               alignItems="stretch"
-                              spacing={2}>
+                              spacing={2} className="edit-modal">
                             <Grid item>
                                 <span>{editDto.id ? 'Update connection' : 'Create connection'}</span>
                             </Grid>
                             <Grid item container spacing={1} direction="column" justify="center"
                                   alignItems="stretch">
                                 <Grid item>
-                                    <TextField id="outlined-basic" label="Name" variant="outlined" fullWidth
+                                    <TextField id="outlined-basic" label="Name" variant="outlined" fullWidth className="edit-modal-name"
                                                error={!valid} value={editDto.name} onChange={handleChangeName}/>
                                 </Grid>
                                 <Grid item>
-                                    <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth
+                                    <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth className="edit-modal-connection-url"
                                                error={!valid} value={editDto.connectionUrl}
                                                onChange={handleChangeConnectionUrl}/>
                                 </Grid>
@@ -235,13 +235,13 @@ function App() {
                             </Grid>
                             <Grid item container spacing={1}>
                                 <Grid item>
-                                    <Button variant="contained" color="primary" disabled={!valid}
+                                    <Button variant="contained" color="primary" disabled={!valid} className="edit-modal-save"
                                             onClick={() => onSave(editDto)}>
                                         Save
                                     </Button>
                                 </Grid>
                                 <Grid item>
-                                    <Button variant="contained" color="secondary" onClick={handleCloseEditModal}>
+                                    <Button variant="contained" color="secondary" onClick={handleCloseEditModal} className="edit-modal-cancel">
                                         Cancel
                                     </Button>
                                 </Grid>
