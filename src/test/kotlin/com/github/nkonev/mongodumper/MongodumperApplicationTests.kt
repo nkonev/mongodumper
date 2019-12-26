@@ -272,15 +272,14 @@ class MongodumperApplicationTests {
 		databasesPage.run {
 			open()
 			val modal = openNewModal()
-			modal.input(newConnectionName, selfMongoUrl)
-			modal.save()
-
+            modal.run {
+                input(newConnectionName, selfMongoUrl)
+                save()
+            }
 			waitForCondition(10) {
 				Assert.assertTrue(getDatabasesList().contains(newConnectionName))
 			}
-
 		}
-
 	}
 
 	fun waitForCondition(secondsWait: Int, f: ()-> Unit){
