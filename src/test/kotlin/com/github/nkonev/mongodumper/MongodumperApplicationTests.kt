@@ -275,10 +275,9 @@ class MongodumperApplicationTests {
 			modal.input(newConnectionName, selfMongoUrl)
 			modal.save()
 
-			waitForCondition(10, {
-				val databasesList = getDatabasesList()
-				Assert.assertTrue(databasesList.contains(newConnectionName))
-			})
+			waitForCondition(10) {
+				Assert.assertTrue(getDatabasesList().contains(newConnectionName))
+			}
 
 		}
 
@@ -292,7 +291,7 @@ class MongodumperApplicationTests {
 				success = true
 				break
 			} catch (e: Throwable) {
-				println("Retrying...")
+				println("Retrying..., lastError=" + e.message)
 				TimeUnit.SECONDS.sleep(1)
 			}
 		}
