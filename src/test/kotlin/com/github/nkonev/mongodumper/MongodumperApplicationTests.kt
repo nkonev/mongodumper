@@ -246,23 +246,17 @@ class MongodumperApplicationTests {
 				.post("/db")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("""
-			{
-			"name": "My first connection",
-			"connectionUrl": "${selfMongoUrl}"
-			}
-		"""))
+					{
+					"name": "My first connection",
+					"connectionUrl": "${selfMongoUrl}"
+					}
+				"""))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").exists())
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/db"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].name").value("My first connection"))
-
-		val databasesPage = DatabasesPage(driver, getHostForBrowser(), port)
-
-		databasesPage.run {
-			open()
-		}
 
 	}
 
@@ -281,27 +275,28 @@ class MongodumperApplicationTests {
 			modal.input(newConnectionName, selfMongoUrl)
 			modal.save()
 
-			var success = false
-			for (i in 1..10 step 1) {
-				try {
-					val databasesList = getDatabasesList()
-					if(databasesList.contains(newConnectionName)) {
-						success = true
-						break
-					} else {
-						throw RuntimeException()
-					}
-				} catch (e: RuntimeException) {
-					println("Retrying...")
-					TimeUnit.SECONDS.sleep(1)
-				}
-			}
-			Assert.assertTrue(success)
+			waitForCondition(10, {
+				val databasesList = getDatabasesList()
+				Assert.assertTrue(databasesList.contains(newConnectionName))
+			})
 
 		}
 
 	}
 
-
+	fun waitForCondition(secondsWait: Int, f: ()-> Unit){
+		var success = false
+		for (i in 1..secondsWait step 1) {
+			try {
+				f()
+				success = true
+				break
+			} catch (e: Throwable) {
+				println("Retrying...")
+				TimeUnit.SECONDS.sleep(1)
+			}
+		}
+		Assert.assertTrue(success)
+	}
 
 }
