@@ -279,6 +279,9 @@ class MongodumperApplicationTests {
 			waitForCondition(10) {
 				Assert.assertTrue(getDatabasesList().contains(newConnectionName))
 			}
+			Assert.assertEquals(1, databasesRepository.count())
+			val find = databasesRepository.findAll().get(0)
+			Assert.assertTrue(find.connectionUrl == selfMongoUrl)
 		}
 	}
 
