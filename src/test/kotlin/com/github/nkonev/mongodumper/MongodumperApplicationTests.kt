@@ -8,7 +8,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.TestWatcher
-import org.openqa.selenium.By
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeOptions
@@ -43,6 +42,10 @@ import java.util.concurrent.TimeUnit
 class DatabasesPage(private val driver: WebDriver, private val host: String, private val port :Integer) {
 
 	init {
+		refreshElements()
+	}
+
+	fun refreshElements() {
 		PageFactory.initElements(driver, this)
 	}
 
@@ -59,7 +62,8 @@ class DatabasesPage(private val driver: WebDriver, private val host: String, pri
 	@FindBy(css = ".edit-modal")
 	lateinit var editModal: WebElement
 
-
+	@FindBy(css = ".list-db-connections .downloadable-clickable")
+	lateinit var connections: java.util.List<WebElement>
 
 	class EditModal(private val driver: WebDriver) {
 		init {
@@ -110,11 +114,13 @@ class DatabasesPage(private val driver: WebDriver, private val host: String, pri
 	}
 
 	fun getDatabasesList(): List<String> {
-		var list: List<WebElement> = driver.findElements(By.cssSelector(".list .list-element"))
-
-		return list.map { webElement -> webElement.text }
+		//refreshElements()
+		return connections.map { webElement -> webElement.text }
 	}
 
+	fun clickToConnection(index: Int){
+		connections.get(index).click()
+	}
 }
 
 class KotlinWebDriverContainer : BrowserWebDriverContainer<KotlinWebDriverContainer>()
@@ -206,7 +212,7 @@ class MongodumperApplicationTests {
 
 			driver = webdriverContainer.getWebDriver();
 
-			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.SECONDS)
+			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.HOURS)
 			driver.manage()?.window()?.maximize()
 		}
 

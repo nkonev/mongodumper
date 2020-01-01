@@ -218,13 +218,13 @@ function App() {
                     <div className="header-text">mongorestore --drop --gzip --archive=/tmp/yourdump.gz</div>
                     <div className="header-text">docker exec -i e7825dd4664b mongorestore --drop --gzip --archive &lt; /tmp/yourdump.gz</div>
                 </header>
-                <List component="nav" aria-label="secondary mailbox folders" className="list">
+                <List className="list-db-connections">
                     {connections.map((value, index) => {
                         return (
                             <ListItem key={value.id} button>
 
                                 <Grid container spacing={1} direction="row">
-                                    <Grid container item xs onClick={() => handleDump(value.id)} alignItems="center" spacing={1}>
+                                    <Grid container item xs onClick={() => handleDump(value.id)} alignItems="center" spacing={1} className="downloadable-clickable">
                                         <ListItemText>
                                             <Box fontFamily="Monospace" className="list-element">
                                                 {value.name}
