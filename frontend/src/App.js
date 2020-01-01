@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import './App.css';
 import axios from 'axios'
 import Modal from '@material-ui/core/Modal';
-import {makeStyles} from '@material-ui/core/styles';
+import {makeStyles, withStyles} from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -13,7 +13,12 @@ import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import Fade from '@material-ui/core/Fade';
 import Box from '@material-ui/core/Box';
+import { green, common } from '@material-ui/core/colors';
+import Popover from '@material-ui/core/Popover';
+import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
+const circleCheckRadius = 34;
 const useStyles = makeStyles(theme => ({
     root: {
         width: '100%',
@@ -41,6 +46,17 @@ const useStyles = makeStyles(theme => ({
         boxShadow: theme.shadows[5],
         padding: theme.spacing(2),
     },
+    typography: {
+        padding: theme.spacing(2),
+    },
+    buttonProgress: {
+        color: green[500],
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        marginTop: -circleCheckRadius,
+        marginLeft: -circleCheckRadius,
+    },
 }));
 
 function getModalStyle() {
@@ -54,9 +70,29 @@ function getModalStyle() {
     };
 }
 
+const GreenButton = withStyles(theme => ({
+    root: {
+        color: common[500],
+        backgroundColor: green[500],
+        '&:hover': {
+            backgroundColor: green[700],
+        },
+    },
+}))(Button);
+
 function App() {
     // state
     const [connections, setConnections] = useState([]);
+    const [modalStyle] = React.useState(getModalStyle);
+    const [openEditModal, setOpenEditModal] = React.useState(false);
+    const [editDto, setEditDto] = React.useState({});
+    const [valid, setValid] = React.useState(true);
+    const [openConfirmModal, setOpenConfirmModal] = React.useState(false);
+    const [dbToDelete, setDbToDelete] = React.useState({});
+    const [checkPopoverAnchorEl, checkPopoverSetAnchorEl] = React.useState(null);
+    const [checkMessage, setCheckMessage] = React.useState("");
+    const [disableWhileChecking, setDisableWhileChecking] = React.useState(false);
+
 
     const fetchData = () => {
         console.log("before get");
@@ -89,15 +125,29 @@ function App() {
             });
     };
 
-    // getModalStyle is not a pure function, we roll the style only on the first render
-    const [modalStyle] = React.useState(getModalStyle);
-    const [openEditModal, setOpenEditModal] = React.useState(false);
-    const [editDto, setEditDto] = React.useState({});
-    const [valid, setValid] = React.useState(true);
-    const [openConfirmModal, setOpenConfirmModal] = React.useState(false);
-    const [dbToDelete, setDbToDelete] = React.useState({});
 
-    const handleOpen = (c) => {
+    const handleCheck = (dto, event) => {
+        checkPopoverSetAnchorEl(event.currentTarget);
+        setCheckMessage("Checking...");
+        setDisableWhileChecking(true);
+
+        axios.get(`check/${dto.id}`)
+            .then((resp) => {
+                setDisableWhileChecking(false);
+                setCheckMessage(resp.data.message);
+            });
+    };
+
+    const handleCheckPopoverClose = () => {
+        if (disableWhileChecking) {
+            console.log("You cannot close popover during checking");
+            return
+        }
+        checkPopoverSetAnchorEl(null);
+        setCheckMessage("");
+    };
+
+    const handleEditModalOpen = (c) => {
         console.log("Editing modal", c.id);
         setEditDto(c);
         validate(c);
@@ -105,6 +155,10 @@ function App() {
     };
 
     const handleCloseEditModal = () => {
+        if (disableWhileChecking) {
+            console.log("You cannot close modal during checking");
+            return
+        }
         setOpenEditModal(false);
     };
 
@@ -154,6 +208,9 @@ function App() {
         handleCloseConfirmModal();
     };
 
+    const id = open ? 'simple-popover' : undefined;
+    const open = Boolean(checkPopoverAnchorEl);
+
     return (
         <div className="App">
             <div className={classes.root}>
@@ -180,7 +237,7 @@ function App() {
                                           alignItems="center" spacing={1}>
                                         <Grid item>
                                             <Button variant="contained" color="primary"
-                                                    onClick={() => handleOpen(value)}>
+                                                    onClick={() => handleEditModalOpen(value)}>
                                                 Edit
                                             </Button>
                                         </Grid>
@@ -198,7 +255,7 @@ function App() {
                 </List>
 
                 <Fab color="primary" aria-label="add" className={classes.fabButton}
-                     onClick={() => handleOpen({name: '', connectionUrl: ''})}>
+                     onClick={() => handleEditModalOpen({name: '', connectionUrl: ''})}>
                     <AddIcon className="fab-add"/>
                 </Fab>
             </div>
@@ -217,6 +274,8 @@ function App() {
                               justify="center"
                               alignItems="stretch"
                               spacing={2} className="edit-modal">
+                            {disableWhileChecking && <CircularProgress size={2*circleCheckRadius} className={classes.buttonProgress} />}
+
                             <Grid item>
                                 <span>{editDto.id ? 'Update connection' : 'Create connection'}</span>
                             </Grid>
@@ -224,24 +283,46 @@ function App() {
                                   alignItems="stretch">
                                 <Grid item>
                                     <TextField id="outlined-basic" label="Name" variant="outlined" fullWidth className="edit-modal-name"
-                                               error={!valid} value={editDto.name} onChange={handleChangeName}/>
+                                               error={!valid} value={editDto.name} onChange={handleChangeName} disabled={disableWhileChecking}/>
                                 </Grid>
                                 <Grid item>
                                     <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth className="edit-modal-connection-url"
                                                error={!valid} value={editDto.connectionUrl}
-                                               onChange={handleChangeConnectionUrl}/>
+                                               onChange={handleChangeConnectionUrl} disabled={disableWhileChecking}/>
                                 </Grid>
 
                             </Grid>
                             <Grid item container spacing={1}>
                                 <Grid item>
-                                    <Button variant="contained" color="primary" disabled={!valid} className="edit-modal-save"
+                                    <Button variant="contained" color="primary" disabled={!valid || disableWhileChecking} className="edit-modal-save"
                                             onClick={() => onSave(editDto)}>
                                         Save
                                     </Button>
                                 </Grid>
                                 <Grid item>
-                                    <Button variant="contained" color="secondary" onClick={handleCloseEditModal} className="edit-modal-cancel">
+                                    <GreenButton aria-describedby={id} variant="contained" color="primary" disabled={!valid || disableWhileChecking} className="edit-modal-save"
+                                            onClick={ (e) => handleCheck(editDto, e)}>
+                                        Check
+                                    </GreenButton>
+                                    <Popover
+                                        id={id}
+                                        open={open}
+                                        anchorEl={checkPopoverAnchorEl}
+                                        anchorOrigin={{
+                                            vertical: 'bottom',
+                                            horizontal: 'center',
+                                        }}
+                                        transformOrigin={{
+                                            vertical: 'top',
+                                            horizontal: 'center',
+                                        }}
+                                        onClose={handleCheckPopoverClose}
+                                    >
+                                        <Typography className={classes.typography}>{checkMessage}</Typography>
+                                    </Popover>
+                                </Grid>
+                                <Grid item>
+                                    <Button variant="contained" color="secondary" onClick={handleCloseEditModal} disabled={disableWhileChecking} className="edit-modal-cancel">
                                         Cancel
                                     </Button>
                                 </Grid>

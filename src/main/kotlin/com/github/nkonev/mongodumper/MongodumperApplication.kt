@@ -1,5 +1,7 @@
 package com.github.nkonev.mongodumper
 
+import com.mongodb.MongoClient
+import com.mongodb.MongoClientURI
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
@@ -45,6 +47,8 @@ class DatabasesController {
 
 	@Autowired
 	private lateinit var appProperties: AppProperties
+
+	private val logger = LoggerFactory.getLogger(javaClass)
 
 	@PostMapping("/db")
 	fun create(@RequestBody userDto: DbConnectionDto): DbConnectionDto {
@@ -96,6 +100,30 @@ class DatabasesController {
 		}
 	}
 
+	data class CheckResponse (val ok: Boolean, val message: String)
+
+	@GetMapping("/check/{id}")
+	fun check(@PathVariable("id") id: String) : CheckResponse {
+		val findById = repository.findById(id)
+		if (findById.isEmpty) {
+			return CheckResponse(false, "Db record not found")
+		}
+		val dbConnectionDto = findById.get()
+
+		try {
+			val u: MongoClientURI = MongoClientURI(dbConnectionDto.connectionUrl)
+			val c: MongoClient = MongoClient(u)
+			c.use {
+				val session = c.startSession()
+				session.use {
+					return CheckResponse(true, "Ok")
+				}
+			}
+		} catch (e: Throwable) {
+			logger.info("Error during check {}", dbConnectionDto.id, e)
+			return CheckResponse(false, e.message.toString())
+		}
+	}
 }
 
 @RestController
