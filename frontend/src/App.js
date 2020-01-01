@@ -224,7 +224,7 @@ function App() {
                             <ListItem key={value.id} button>
 
                                 <Grid container spacing={1} direction="row">
-                                    <Grid item xs onClick={() => handleDump(value.id)}>
+                                    <Grid container item xs onClick={() => handleDump(value.id)} alignItems="center" spacing={1}>
                                         <ListItemText>
                                             <Box fontFamily="Monospace" className="list-element">
                                                 {value.name}
