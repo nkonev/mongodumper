@@ -18,7 +18,6 @@ import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.util.*
-import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletResponse
 
 @EnableConfigurationProperties(AppProperties::class, BuildProperties::class)
@@ -100,18 +99,14 @@ class DatabasesController {
 		}
 	}
 
+	data class CheckRequest (val connectionUrl: String)
+
 	data class CheckResponse (val ok: Boolean, val message: String)
 
-	@GetMapping("/check/{id}")
-	fun check(@PathVariable("id") id: String) : CheckResponse {
-		val findById = repository.findById(id)
-		if (findById.isEmpty) {
-			return CheckResponse(false, "Db record not found")
-		}
-		val dbConnectionDto = findById.get()
-
+	@PostMapping("/check")
+	fun check(@RequestBody checkRequest: CheckRequest) : CheckResponse {
 		try {
-			val u: MongoClientURI = MongoClientURI(dbConnectionDto.connectionUrl)
+			val u: MongoClientURI = MongoClientURI(checkRequest.connectionUrl)
 			val c: MongoClient = MongoClient(u)
 			c.use {
 				val session = c.startSession()
@@ -120,7 +115,7 @@ class DatabasesController {
 				}
 			}
 		} catch (e: Throwable) {
-			logger.info("Error during check {}", dbConnectionDto.id, e)
+			logger.info("Error during check {}", checkRequest.connectionUrl, e)
 			return CheckResponse(false, e.message.toString())
 		}
 	}

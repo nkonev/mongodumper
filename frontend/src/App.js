@@ -131,7 +131,7 @@ function App() {
         setCheckMessage("Checking...");
         setDisableWhileChecking(true);
 
-        axios.get(`check/${dto.id}`)
+        axios.post(`check`, {"connectionUrl": dto.connectionUrl})
             .then((resp) => {
                 setDisableWhileChecking(false);
                 setCheckMessage(resp.data.message);
