@@ -109,10 +109,9 @@ class DatabasesController {
 			val u: MongoClientURI = MongoClientURI(checkRequest.connectionUrl)
 			val c: MongoClient = MongoClient(u)
 			c.use {
-				val session = c.startSession()
-				session.use {
-					return CheckResponse(true, "Ok")
-				}
+				val dbs = c.listDatabaseNames()
+				dbs.forEach({ s: String? -> logger.info("For {} found db {}", checkRequest.connectionUrl, s) })
+				return CheckResponse(true, "Ok")
 			}
 		} catch (e: Throwable) {
 			logger.info("Error during check {}", checkRequest.connectionUrl, e)
