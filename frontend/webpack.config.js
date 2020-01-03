@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CssExtractPlugin = require('mini-css-extract-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const LiveReloadPlugin = require('webpack-livereload-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const contentBase = path.join(__dirname, "../src/main/resources/static");
 
@@ -14,6 +15,9 @@ module.exports = (env, argv) => {
             verbose: true,
             dry: false
         }),
+        new CopyPlugin([
+            { from: './public', to: contentBase, ignore: ['index.html'] },
+        ]),
         new HtmlWebpackPlugin({
             template: "./public/index.html"
         }),
