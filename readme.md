@@ -10,6 +10,13 @@ Set environment variable `SPRING_DATA_MONGODB_URI` with url of mongo used for st
 
 (Optional) set environment variable `SERVER_SERVLET_CONTEXT-PATH=/mongodumper`.
 
+## Hooks
+There are BEFORE_HOOK and AFTER_HOOK:
+
+```bash
+docker run -e BEFORE_HOOK='b="coolest app"; echo start ${b};' -e AFTER_HOOK='a="super app"; echo goodbye ${a};' -it nkonev/mongodumper
+```
+
 # Download
 [Docker hub](https://hub.docker.com/repository/docker/nkonev/mongodumper)
 ```bash

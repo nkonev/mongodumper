@@ -28,7 +28,7 @@ script:
     IMAGE_LATEST=nkonev/mongodumper:latest;
     IMAGE_VERSIONED=nkonev/mongodumper:$DATE_VERSION;
     if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_TEST_RESULT" == "0" && "$TRAVIS_EVENT_TYPE" != "cron" ]]; then (
-      mkdir $BUILDDIR && cp $JAR $BUILDDIR/$JAR_FINAL && cp ./Dockerfile $BUILDDIR &&
+      mkdir $BUILDDIR && cp $JAR $BUILDDIR/$JAR_FINAL && cp ./docker/* $BUILDDIR &&
       docker build -t $IMAGE_LATEST -t $IMAGE_VERSIONED $BUILDDIR &&
       docker login -u="$DOCKER_LOGIN" -p="$DOCKER_PASSWORD" &&
       docker push $IMAGE_LATEST && docker push $IMAGE_VERSIONED

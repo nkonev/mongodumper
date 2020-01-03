@@ -9,5 +9,6 @@ RUN apt-get update && \
 
 EXPOSE 8080
 WORKDIR /opt/mongodumper
-CMD ["java", "-jar", "mongodumper.jar"]
+ENTRYPOINT ["/entrypoint.sh"]
+COPY entrypoint.sh /entrypoint.sh
 COPY ./mongodumper.jar /opt/mongodumper/mongodumper.jar
