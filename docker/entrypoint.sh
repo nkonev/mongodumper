@@ -5,7 +5,7 @@ set -x
 pid=0
 
 # SIGTERM-handler
-# see `man 7 signal` for nubers
+# see `man 7 signal` for numbers
 term_handler() {
   if [ $pid -ne 0 ]; then
     # Exec AFTER_HOOK
