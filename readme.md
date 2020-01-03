@@ -17,6 +17,11 @@ There are BEFORE_HOOK and AFTER_HOOK:
 docker run -e BEFORE_HOOK='b="coolest app"; echo start ${b};' -e AFTER_HOOK='a="super app"; echo goodbye ${a};' -it nkonev/mongodumper
 ```
 
+## Full configuration example
+```bash
+docker run -e SPRING_DATA_MONGODB_URI=mongodb://172.18.0.3:27017/mongodumper -e BEFORE_HOOK='b="coolest app"; echo start ${b};' -e AFTER_HOOK='a="super app"; echo goodbye ${a};' -e SERVER_SERVLET_CONTEXT-PATH=/mongodumper -it --network=blog-storage_default -p 7070:8080  nkonev/mongodumper
+```
+
 # Download
 [Docker hub](https://hub.docker.com/repository/docker/nkonev/mongodumper)
 ```bash
