@@ -12,6 +12,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.PropertySource
 import org.springframework.data.annotation.Id
+import org.springframework.data.domain.Sort
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
@@ -28,7 +31,9 @@ class MongodumperApplication
 data class DbConnectionDto(@Id val id: String?, val name: String, val connectionUrl: String)
 
 @Repository
-interface DbConnectionRepository : MongoRepository<DbConnectionDto, String>
+interface DbConnectionRepository : MongoRepository<DbConnectionDto, String> {
+	fun findByName(name: String): Optional<DbConnectionDto>
+}
 
 @ConstructorBinding
 @ConfigurationProperties("mongodumper")
@@ -74,28 +79,30 @@ class DatabasesController {
 		return repository.findById(id)
 	}
 
-	@GetMapping("/dump/{id}")
-	fun dump(@PathVariable("id") id: String, resp: HttpServletResponse) {
-		val findById = repository.findById(id)
+	@GetMapping("/dump/{name}.gz")
+	fun dump(@PathVariable("name") name: String, resp: HttpServletResponse) {
+		val findById = repository.findByName(name)
 		if (findById.isEmpty) {
-			resp.sendError(404, """connection with id '${id}' not found""")
+			resp.sendError(404, """connection with name '${name}' not found""")
 		}
 		val dbDto :DbConnectionDto = findById.get()
 
 		val filename = URLEncoder.encode(dbDto.name, "UTF-8")
-		resp.status = 200
 		resp.setHeader("Content-Type", "application/octet-stream")
-		resp.setHeader("Content-Disposition", """attachment; filename*=utf-8''${filename}.gz""")
 		val pb :ProcessBuilder = ProcessBuilder(appProperties.mongodump, """--uri=${dbDto.connectionUrl}""", "--gzip", "--archive")
-		val process :Process = pb.start()
-		val inputStream = process.inputStream
-		inputStream.use {
-			try {
-				inputStream.copyTo(resp.outputStream)
-			} catch (e: RuntimeException){
-				process.destroyForcibly()
-				throw e;
+		try {
+			val process: Process = pb.start()
+			val inputStream = process.inputStream
+			inputStream.use {
+				try {
+					inputStream.copyTo(resp.outputStream)
+				} catch (e: RuntimeException) {
+					process.destroyForcibly()
+					throw e;
+				}
 			}
+		} catch (e: Throwable) {
+			resp.status = 500
 		}
 	}
 
@@ -139,8 +146,13 @@ class Commandline : CommandLineRunner {
 	@Autowired
 	private lateinit var buildProperties: BuildProperties
 
+	@Autowired
+	private lateinit var mongoTemplate: MongoTemplate
+
 	override fun run(vararg args: String?) {
 		logger.info("Git commit hash: {}, version {}", buildProperties.commitHash, buildProperties.version)
+
+		mongoTemplate.indexOps(DbConnectionDto::class.java).ensureIndex(Index().unique().on(DbConnectionDto::name.name, Sort.Direction.ASC))
 	}
 }
 

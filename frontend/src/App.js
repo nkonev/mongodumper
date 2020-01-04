@@ -192,8 +192,8 @@ function App() {
         validate(dto);
     };
 
-    const handleDump = id => {
-        const d = "dump/" + id;
+    const handleDump = dto => {
+        const d = "dump/" + dto.name + ".gz";
         console.log(`Will open ${window.location.href + d} for download gzipped file`);
         window.open(d, '_blank');
     };
@@ -224,7 +224,7 @@ function App() {
                             <ListItem key={value.id} button>
 
                                 <Grid container spacing={1} direction="row">
-                                    <Grid container item xs onClick={() => handleDump(value.id)} alignItems="center" spacing={1} className="downloadable-clickable">
+                                    <Grid container item xs onClick={() => handleDump(value)} alignItems="center" spacing={1} className="downloadable-clickable">
                                         <ListItemText>
                                             <Box fontFamily="Monospace" className="list-element">
                                                 {value.name}
