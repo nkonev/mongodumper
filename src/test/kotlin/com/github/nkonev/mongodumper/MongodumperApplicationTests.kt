@@ -33,8 +33,8 @@ import org.testcontainers.containers.DefaultRecordingFileFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.lifecycle.TestDescription
+import org.testcontainers.utility.MountableFile
 import java.io.File
-import java.lang.RuntimeException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -168,6 +168,10 @@ class MongodumperApplicationTests {
 	companion object {
 		val logger :Logger = LoggerFactory.getLogger(MongodumperApplicationTests::class.java)
 
+		val inContainerDownloadedDir = "/tmp/chrome-downloaded"
+		val inHostResultsRootDir = "./build"
+		val inHostResultsDownloadedDir = inHostResultsRootDir+"/chrome-downloaded"
+
 		const val appPort = 7077
 		val mongoPort = 27017
 
@@ -191,13 +195,25 @@ class MongodumperApplicationTests {
 		fun beforeAll() {
 			org.testcontainers.Testcontainers.exposeHostPorts(appPort);
 
-			val vidDir = File("./build/video")
-			vidDir.deleteRecursively()
-			vidDir.mkdirs()
+			val videoDir = File(inHostResultsRootDir+"/video")
+			videoDir.deleteRecursively()
+			videoDir.mkdirs()
+
+			val downloadedDir = File(inHostResultsDownloadedDir)
+			downloadedDir.deleteRecursively()
+			downloadedDir.mkdirs()
+
+			val chromePrefs :HashMap<String, Any> = HashMap<String, Any>()
+			chromePrefs.put("download.default_directory", inContainerDownloadedDir)
+			chromePrefs.put("download.prompt_for_download", false)
+			chromePrefs.put("download.directory_upgrade", true)
+
+			val chromeOptions = ChromeOptions()
+			chromeOptions.setExperimentalOption("prefs", chromePrefs)
 			webdriverContainer = KotlinWebDriverContainer()
-					.withCapabilities(ChromeOptions())
-					.withRecordingMode(RECORD_ALL, vidDir)
-					.withRecordingFileFactory(DefaultRecordingFileFactory());
+					.withCapabilities(chromeOptions)
+					.withRecordingMode(RECORD_ALL, videoDir)
+					.withRecordingFileFactory(DefaultRecordingFileFactory())
 			webdriverContainer.start()
 
 			logger.info("Use this VNC address for connect into container with remmina. Select max color depth and quality. If any errors, check remmina's console window.")
@@ -212,7 +228,7 @@ class MongodumperApplicationTests {
 
 			driver = webdriverContainer.getWebDriver();
 
-			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.HOURS)
+			driver.manage()?.timeouts()?.implicitlyWait(30, TimeUnit.SECONDS)
 			driver.manage()?.window()?.maximize()
 		}
 
@@ -290,6 +306,20 @@ class MongodumperApplicationTests {
 		Assert.assertEquals(1, databasesRepository.count())
 		val find = databasesRepository.findAll().get(0)
 		Assert.assertTrue(find.connectionUrl == selfMongoUrl)
+
+		databasesPage.clickToConnection(0)
+
+		TimeUnit.SECONDS.sleep(5)
+		val filename = newConnectionName.replace(' ', '+')+".gz"
+
+		val inContainerFullFilePath = inContainerDownloadedDir+"/"+filename
+		val inHostFullFilePath = inHostResultsDownloadedDir+"/"+filename
+		webdriverContainer.copyFileFromContainer(inContainerFullFilePath, inHostFullFilePath)
+
+		mongoContainer.copyFileToContainer(MountableFile.forHostPath(inHostFullFilePath), inContainerFullFilePath)
+		val execInContainerResult = mongoContainer.execInContainer("mongorestore", "--drop", "--gzip", "--archive=" + inContainerFullFilePath)
+		logger.info(execInContainerResult.toString())
+		Assert.assertEquals(0, execInContainerResult.exitCode)
 	}
 
 	fun waitForCondition(secondsWait: Int, f: ()-> Unit){
@@ -300,7 +330,7 @@ class MongodumperApplicationTests {
 				success = true
 				break
 			} catch (e: Throwable) {
-				println("Retrying..., lastError=" + e.message)
+				logger.info("Retrying..., lastError=" + e.message)
 				TimeUnit.SECONDS.sleep(1)
 			}
 		}
