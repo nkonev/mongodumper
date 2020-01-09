@@ -12,6 +12,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.PropertySource
 import org.springframework.data.annotation.Id
+import org.springframework.data.domain.Sort
+import org.springframework.data.mongodb.core.MongoOperations
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
@@ -139,7 +142,14 @@ class Commandline : CommandLineRunner {
 	@Autowired
 	private lateinit var buildProperties: BuildProperties
 
+	@Autowired
+	private lateinit var operations: MongoOperations
+
 	override fun run(vararg args: String?) {
+		logger.info("Ensuring unique index")
+		val idx :Index = Index(DbConnectionDto::name.name, Sort.Direction.ASC).unique()
+		operations.indexOps(DbConnectionDto::class.java).ensureIndex(idx)
+
 		logger.info("Git commit hash: {}, version {}", buildProperties.commitHash, buildProperties.version)
 	}
 }
