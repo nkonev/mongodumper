@@ -117,11 +117,19 @@ function App() {
             });
     };
 
-    const onSave = (c) => {
+    const onSave = (c, event) => {
+        checkPopoverSetAnchorEl(event.currentTarget);
+        setCheckMessage("Checking...");
+
         (c.id ? axios.put(`db`, c) : axios.post(`db`, c))
             .then(() => {
                 fetchData();
                 handleCloseEditModal();
+            })
+            .catch((error) => {
+                // handle error
+                console.log("Handling error on save", error.response);
+                setCheckMessage(error.response.data.message);
             });
     };
 
@@ -295,7 +303,7 @@ function App() {
                             <Grid item container spacing={1}>
                                 <Grid item>
                                     <Button variant="contained" color="primary" disabled={!valid || disableWhileChecking} className="edit-modal-save"
-                                            onClick={() => onSave(editDto)}>
+                                            onClick={(e) => onSave(editDto, e)}>
                                         Save
                                     </Button>
                                 </Grid>
