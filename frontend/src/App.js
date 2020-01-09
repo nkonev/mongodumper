@@ -125,6 +125,7 @@ function App() {
             .then(() => {
                 fetchData();
                 handleCloseEditModal();
+                handleCheckPopoverClose();
             })
             .catch((error) => {
                 // handle error
@@ -296,7 +297,9 @@ function App() {
                                 <Grid item>
                                     <TextField id="outlined-basic" label="Connection URL" variant="outlined" fullWidth className="edit-modal-connection-url"
                                                error={!valid} value={editDto.connectionUrl}
-                                               onChange={handleChangeConnectionUrl} disabled={disableWhileChecking}/>
+                                               onChange={handleChangeConnectionUrl} disabled={disableWhileChecking}
+                                               helperText="mongodb://localhost:27017/mongodumper"
+                                    />
                                 </Grid>
 
                             </Grid>
