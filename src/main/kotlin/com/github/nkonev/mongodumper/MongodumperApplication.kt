@@ -41,6 +41,11 @@ data class AppProperties(val mongodump: String)
 @ConfigurationProperties("build")
 data class BuildProperties(val commitHash: String, val version :String)
 
+data class CheckRequest (val connectionUrl: String)
+
+data class CheckResponse (val ok: Boolean, val message: String)
+
+
 @RestController
 class DatabasesController {
 
@@ -101,10 +106,6 @@ class DatabasesController {
 			}
 		}
 	}
-
-	data class CheckRequest (val connectionUrl: String)
-
-	data class CheckResponse (val ok: Boolean, val message: String)
 
 	@PostMapping("/check")
 	fun check(@RequestBody checkRequest: CheckRequest) : CheckResponse {
