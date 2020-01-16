@@ -31,9 +31,6 @@ const useStyles = makeStyles(theme => ({
         right: 30,
         margin: '0 auto',
     },
-    fabButtonDisabled: {
-        display: 'none'
-    },
     paper: {
         position: 'absolute',
         width: 400,
@@ -85,7 +82,6 @@ const GreenButton = withStyles(theme => ({
 
 function App() {
     // state
-    const [kiosk, setKiosk] = React.useState(false);
     const [connections, setConnections] = useState([]);
     const [modalStyle] = React.useState(getModalStyle);
     const [openEditModal, setOpenEditModal] = React.useState(false);
@@ -109,13 +105,6 @@ function App() {
 
     useEffect(() => {
         fetchData();
-
-        axios.get(`config`)
-            .then(message => {
-                const m = message.data;
-                console.log("get config:", m);
-                setKiosk(m.kiosk);
-            });
     }, []);
 
     const classes = useStyles();
@@ -146,27 +135,15 @@ function App() {
     };
 
 
-    const handleCheck = (dto, useUrl, event) => {
-        let data;
-        if (useUrl) {
-            data = {"connectionUrl": dto.connectionUrl}
-        } else {
-            data = {"id": dto.id}
-        }
+    const handleCheck = (dto, event) => {
         checkPopoverSetAnchorEl(event.currentTarget);
         setCheckMessage("Checking...");
         setDisableWhileChecking(true);
 
-        axios.post(`check`, data)
+        axios.post(`check`, {"connectionUrl": dto.connectionUrl})
             .then((resp) => {
                 setDisableWhileChecking(false);
                 setCheckMessage(resp.data.message);
-            })
-            .catch((error) => {
-                // handle error
-                console.log("Handling error on save", error.response);
-                setDisableWhileChecking(false);
-                setCheckMessage(error.response.data.message);
             });
     };
 
@@ -268,18 +245,12 @@ function App() {
                                           justify="flex-end"
                                           alignItems="center" spacing={1}>
                                         <Grid item>
-                                            <GreenButton aria-describedby={id} variant="contained" color="primary" disabled={!valid || disableWhileChecking}
-                                                         onClick={ (e) => handleCheck(value, false, e)}>
-                                                Check
-                                            </GreenButton>
-                                        </Grid>
-                                        <Grid item hidden={kiosk}>
                                             <Button variant="contained" color="primary"
                                                     onClick={() => handleEditModalOpen(value)}>
                                                 Edit
                                             </Button>
                                         </Grid>
-                                        <Grid item hidden={kiosk}>
+                                        <Grid item>
                                             <Button variant="contained" color="secondary"
                                                     onClick={() => openDeleteModal(value)}>
                                                 Delete
@@ -292,13 +263,10 @@ function App() {
                     })}
                 </List>
 
-                <Fab color="primary" aria-label="add" className={!kiosk ? classes.fabButton : classes.fabButtonDisabled}
-                     onClick={() => handleEditModalOpen({name: '', connectionUrl: ''})}
-                     hidden={kiosk}
-                >
+                <Fab color="primary" aria-label="add" className={classes.fabButton}
+                     onClick={() => handleEditModalOpen({name: '', connectionUrl: ''})}>
                     <AddIcon className="fab-add"/>
                 </Fab>
-
             </div>
 
             <Modal
@@ -343,10 +311,26 @@ function App() {
                                     </Button>
                                 </Grid>
                                 <Grid item>
-                                    <GreenButton aria-describedby={id} variant="contained" color="primary" disabled={!valid || disableWhileChecking}
-                                            onClick={ (e) => handleCheck(editDto, true, e)}>
+                                    <GreenButton aria-describedby={id} variant="contained" color="primary" disabled={!valid || disableWhileChecking} className="edit-modal-save"
+                                            onClick={ (e) => handleCheck(editDto, e)}>
                                         Check
                                     </GreenButton>
+                                    <Popover
+                                        id={id}
+                                        open={open}
+                                        anchorEl={checkPopoverAnchorEl}
+                                        anchorOrigin={{
+                                            vertical: 'bottom',
+                                            horizontal: 'center',
+                                        }}
+                                        transformOrigin={{
+                                            vertical: 'top',
+                                            horizontal: 'center',
+                                        }}
+                                        onClose={handleCheckPopoverClose}
+                                    >
+                                        <Typography className={classes.typography}>{checkMessage}</Typography>
+                                    </Popover>
                                 </Grid>
                                 <Grid item>
                                     <Button variant="contained" color="secondary" onClick={handleCloseEditModal} disabled={disableWhileChecking} className="edit-modal-cancel">
@@ -395,24 +379,6 @@ function App() {
                     </div>
                 </Fade>
             </Modal>
-
-            <Popover
-                id={id}
-                open={open}
-                anchorEl={checkPopoverAnchorEl}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-                onClose={handleCheckPopoverClose}
-            >
-                <Typography className={classes.typography}>{checkMessage}</Typography>
-            </Popover>
-
         </div>
     );
 }
