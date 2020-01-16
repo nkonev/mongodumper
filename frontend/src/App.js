@@ -413,7 +413,7 @@ function App() {
                 aria-labelledby="simple-modal-title"
                 aria-describedby="simple-modal-description"
                 open={openUploadModal}
-                onClose={handleCloseConfirmModal}
+                onClose={handleCloseUploadModal}
             >
                 <Fade in={openUploadModal}>
                     <div style={modalStyle} className={classes.confirm}>
