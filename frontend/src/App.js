@@ -17,6 +17,7 @@ import { green, common } from '@material-ui/core/colors';
 import Popover from '@material-ui/core/Popover';
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import BackupIcon from '@material-ui/icons/Backup';
 
 const circleCheckRadius = 34;
 const useStyles = makeStyles(theme => ({
@@ -24,11 +25,18 @@ const useStyles = makeStyles(theme => ({
         width: '100%',
         backgroundColor: theme.palette.background.paper,
     },
-    fabButton: {
+    fabAddButton: {
         position: 'absolute',
         zIndex: 1,
         bottom: 30,
         right: 30,
+        margin: '0 auto',
+    },
+    fabRestoreButton: {
+        position: 'absolute',
+        zIndex: 1,
+        bottom: 30,
+        left: 30,
         margin: '0 auto',
     },
     paper: {
@@ -92,7 +100,8 @@ function App() {
     const [checkPopoverAnchorEl, checkPopoverSetAnchorEl] = React.useState(null);
     const [checkMessage, setCheckMessage] = React.useState("");
     const [disableWhileChecking, setDisableWhileChecking] = React.useState(false);
-
+    const [openUploadModal, setOpenUploadModal] = React.useState(false);
+    const [uploadEnabled, setUploadEnabled] = React.useState(false);
 
     const fetchData = () => {
         console.log("before get");
@@ -175,6 +184,22 @@ function App() {
         setOpenConfirmModal(false);
     };
 
+    const handleUploadModalOpen = () => {
+        setUploadEnabled(false);
+        setOpenUploadModal(true);
+    };
+    
+    const handleCloseUploadModal = () => {
+        setOpenUploadModal(false);
+    };
+
+    const formOnChange = (e) => {
+        console.log("Form changed", e.target.value);
+        if (e.target.value) {
+            setUploadEnabled(true);
+        }
+    };
+    
     const validString = s => {
         if (s) {
             return true
@@ -263,7 +288,11 @@ function App() {
                     })}
                 </List>
 
-                <Fab color="primary" aria-label="add" className={classes.fabButton}
+                <Fab color="primary" aria-label="add" className={classes.fabRestoreButton}
+                     onClick={handleUploadModalOpen}>
+                    <BackupIcon className="fab-restore"/>
+                </Fab>
+                <Fab color="primary" aria-label="add" className={classes.fabAddButton}
                      onClick={() => handleEditModalOpen({name: '', connectionUrl: ''})}>
                     <AddIcon className="fab-add"/>
                 </Fab>
@@ -375,6 +404,44 @@ function App() {
                                     </Button>
                                 </Grid>
                             </Grid>
+                        </Grid>
+                    </div>
+                </Fade>
+            </Modal>
+
+            <Modal
+                aria-labelledby="simple-modal-title"
+                aria-describedby="simple-modal-description"
+                open={openUploadModal}
+                onClose={handleCloseConfirmModal}
+            >
+                <Fade in={openUploadModal}>
+                    <div style={modalStyle} className={classes.confirm}>
+
+                        <Grid container
+                              direction="column"
+                              justify="center"
+                              alignItems="stretch"
+                              spacing={2}>
+                            <Grid item>
+                                Upload file to restore mongodumper db
+                            </Grid>
+                            
+                            <form action="restore" method="post" encType="multipart/form-data" onChange={formOnChange}>
+                                <Grid item container spacing={1}>
+                                    <input type="file" name="file" id="file"/>
+                                    <Grid item>
+                                        <Button variant="contained" color="primary" type="submit" disabled={!uploadEnabled}>
+                                            Upload
+                                        </Button>
+                                    </Grid>
+                                    <Grid item>
+                                        <Button variant="contained" color="secondary" onClick={handleCloseUploadModal}>
+                                            Cancel
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </form>
                         </Grid>
                     </div>
                 </Fade>

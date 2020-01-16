@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.mongo.MongoProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -19,8 +20,13 @@ import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import java.io.BufferedReader
+import java.io.InputStream
+import java.net.URI
 import java.net.URLEncoder
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @EnableConfigurationProperties(AppProperties::class, BuildProperties::class)
@@ -35,7 +41,7 @@ interface DbConnectionRepository : MongoRepository<DbConnectionDto, String>
 
 @ConstructorBinding
 @ConfigurationProperties("mongodumper")
-data class AppProperties(val mongodump: String)
+data class AppProperties(val mongodump: String, val mongorestore: String)
 
 @ConstructorBinding
 @ConfigurationProperties("build")
@@ -54,6 +60,9 @@ class DatabasesController {
 
 	@Autowired
 	private lateinit var appProperties: AppProperties
+
+	@Autowired
+	private lateinit var mongoProperties : MongoProperties
 
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -91,7 +100,6 @@ class DatabasesController {
 		val dbDto :DbConnectionDto = findById.get()
 
 		val filename = URLEncoder.encode(dbDto.name, "UTF-8")
-		resp.status = 200
 		resp.setHeader("Content-Type", "application/octet-stream")
 		resp.setHeader("Content-Disposition", """attachment; filename*=utf-8''${filename}.gz""")
 		val pb :ProcessBuilder = ProcessBuilder(appProperties.mongodump, """--uri=${dbDto.connectionUrl}""", "--gzip", "--archive")
@@ -104,6 +112,41 @@ class DatabasesController {
 				process.destroyForcibly()
 				throw e;
 			}
+		}
+		process.waitFor()
+		throwExceptionIfProcessBadlyExited(process)
+	}
+
+	@PostMapping("/restore")
+	fun selfRestore(@RequestPart("file") multipartFile: MultipartFile, req: HttpServletRequest, resp: HttpServletResponse) {
+		val pb :ProcessBuilder = ProcessBuilder(appProperties.mongorestore, """--uri=${mongoProperties.uri}""", "--drop", "--gzip", "--archive")
+		val process :Process = pb.start()
+
+		var multipartInputStream = multipartFile.inputStream
+		multipartInputStream.use {
+			try {
+				multipartInputStream.copyTo(process.outputStream)
+			} catch (e: RuntimeException){
+				process.destroyForcibly()
+				throw e;
+			} finally {
+				process.outputStream.flush()
+				process.outputStream.close()
+			}
+		}
+		process.waitFor()
+		throwExceptionIfProcessBadlyExited(process)
+		val header = req.getHeader("Referer");
+		if (header != null) {
+			resp.sendRedirect(URI.create(header).path)
+		} else {
+			resp.sendRedirect("/index.html")
+		}
+	}
+	
+	fun throwExceptionIfProcessBadlyExited(process :Process) {
+		if (process.exitValue() != 0) {
+			throw RuntimeException("Completed with error: " + inputStreamToString(process.errorStream))
 		}
 	}
 
@@ -122,6 +165,17 @@ class DatabasesController {
 			return CheckResponse(false, e.message.toString())
 		}
 	}
+}
+
+fun inputStreamToString(inputStream: InputStream) : String {
+	val reader = BufferedReader(inputStream.reader())
+	val content: String
+	try {
+		content = reader.readText()
+	} finally {
+		reader.close()
+	}
+	return content
 }
 
 @RestController
