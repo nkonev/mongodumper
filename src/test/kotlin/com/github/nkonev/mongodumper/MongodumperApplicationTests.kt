@@ -310,7 +310,7 @@ class MongodumperApplicationTests {
 		databasesPage.clickToConnection(0)
 
 		TimeUnit.SECONDS.sleep(5)
-		val filename = newConnectionName.replace(' ', '+')+".gz"
+		val filename = newConnectionName+".gz"
 
 		val inContainerFullFilePath = inContainerDownloadedDir+"/"+filename
 		val inHostFullFilePath = inHostResultsDownloadedDir+"/"+filename

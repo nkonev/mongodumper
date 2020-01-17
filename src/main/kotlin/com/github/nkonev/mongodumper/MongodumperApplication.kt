@@ -12,11 +12,14 @@ import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.PropertySource
+import org.springframework.core.io.InputStreamResource
 import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.http.*
+import org.springframework.http.HttpHeaders.CONTENT_DISPOSITION
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import org.springframework.web.bind.annotation.*
@@ -25,6 +28,7 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.net.URI
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -92,29 +96,26 @@ class DatabasesController {
 	}
 
 	@GetMapping("/dump/{id}")
-	fun dump(@PathVariable("id") id: String, resp: HttpServletResponse) {
-		val findById = repository.findById(id)
-		if (findById.isEmpty) {
-			resp.sendError(404, """connection with id '${id}' not found""")
-		}
-		val dbDto :DbConnectionDto = findById.get()
+	fun dump(@PathVariable("id") id: String) : ResponseEntity<InputStreamResource> {
+		val dbDto :DbConnectionDto = repository.findById(id).orElseThrow()
 
-		val filename = URLEncoder.encode(dbDto.name, "UTF-8")
-		resp.setHeader("Content-Type", "application/octet-stream")
-		resp.setHeader("Content-Disposition", """attachment; filename*=utf-8''${filename}.gz""")
+		val responseHeaders = HttpHeaders()
+		responseHeaders.contentType = MediaType.APPLICATION_OCTET_STREAM
+		val contentDisposition = ContentDisposition.builder("attachment").filename(dbDto.name+".gz", StandardCharsets.UTF_8).build()
+		responseHeaders.contentDisposition = contentDisposition
 		val pb :ProcessBuilder = ProcessBuilder(appProperties.mongodump, """--uri=${dbDto.connectionUrl}""", "--gzip", "--archive")
-		val process :Process = pb.start()
-		val inputStream = process.inputStream
-		inputStream.use {
-			try {
-				inputStream.copyTo(resp.outputStream)
-			} catch (e: RuntimeException){
-				process.destroyForcibly()
-				throw e;
-			}
+		try {
+			val process: Process = pb.start()
+			val inputStream = process.inputStream
+			var inputStreamResource: InputStreamResource = InputStreamResource(inputStream)
+
+			process.waitFor()
+			throwExceptionIfProcessBadlyExited(process)
+			return ResponseEntity(inputStreamResource, responseHeaders, HttpStatus.OK);
+		} catch (e: Exception){
+			responseHeaders.remove(CONTENT_DISPOSITION)
+			return ResponseEntity(responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		process.waitFor()
-		throwExceptionIfProcessBadlyExited(process)
 	}
 
 	@PostMapping("/restore")
