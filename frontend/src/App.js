@@ -424,7 +424,7 @@ function App() {
                               alignItems="stretch"
                               spacing={2}>
                             <Grid item>
-                                Upload file to restore mongodumper db
+                                Upload .gz file to restore mongodumper db
                             </Grid>
                             
                             <form action="restore" method="post" encType="multipart/form-data" onChange={formOnChange}>
