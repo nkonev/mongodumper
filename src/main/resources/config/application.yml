@@ -3,3 +3,4 @@ spring.mvc.static-path-pattern: /**
 spring.resources.static-locations: file:src/main/resources/static/, classpath:/static/, file:/var/www
 mongodumper.mongodump: "mongodump"
 mongodumper.mongorestore: "mongorestore"
+mongodumper.mongoServerSelectionTimeout: 2m

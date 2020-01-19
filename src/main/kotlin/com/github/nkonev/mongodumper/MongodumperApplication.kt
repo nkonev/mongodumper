@@ -1,6 +1,7 @@
 package com.github.nkonev.mongodumper
 
 import com.mongodb.MongoClient
+import com.mongodb.MongoClientOptions
 import com.mongodb.MongoClientURI
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,6 +12,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.PropertySource
 import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
@@ -27,6 +30,7 @@ import java.io.InputStream
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.time.Duration
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -43,7 +47,7 @@ interface DbConnectionRepository : MongoRepository<DbConnectionDto, String>
 
 @ConstructorBinding
 @ConfigurationProperties("mongodumper")
-data class AppProperties(val mongodump: String, val mongorestore: String)
+data class AppProperties(val mongodump: String, val mongorestore: String, val mongoServerSelectionTimeout: Duration)
 
 @ConstructorBinding
 @ConfigurationProperties("build")
@@ -53,6 +57,13 @@ data class CheckRequest (val connectionUrl: String)
 
 data class CheckResponse (val ok: Boolean, val message: String)
 
+@Configuration
+class MongoConfig {
+	@Bean
+	fun mongoVlientOptions(properties: AppProperties) : MongoClientOptions {
+		return MongoClientOptions.builder().serverSelectionTimeout(properties.mongoServerSelectionTimeout.toMillis().toInt()).build();
+	}
+}
 
 @RestController
 class DatabasesController {
